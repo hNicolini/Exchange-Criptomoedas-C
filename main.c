@@ -26,5 +26,5 @@ int main(void){
     fread(&moedas, sizeof(bolsa), 1, cotas);
     printf("bitcoin: %.2f\nethereum: %.2f\nripple: %.2f", moedas.bitcoin, moedas.ethereum, moedas.ripple);
     fclose(cotas);
-
+    return 0;
 }
