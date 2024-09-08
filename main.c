@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+int usuario(void);
 typedef struct BolsaCripto{
     float bitcoin, ethereum, ripple;
 } BolsaCripto;
@@ -14,6 +15,7 @@ void ler_cota(FILE* arquivo, BolsaCripto* valores){
 }
 
 int main(void){
+    usuario();
     BolsaCripto moedas;
     moedas.bitcoin = 312444.10;
     moedas.ethereum = 16233.20;
@@ -47,4 +49,50 @@ int main(void){
     fclose(cotas);
     
     return 0;
+}
+
+
+int login(void){
+    // Função dreservada para login
+}
+int cadastro(void){
+    
+    //função reservada para cadastro de usuarios
+
+    char usuario[80];
+    char senha[30];
+    
+    //perguntando o cpf e senha e salvando em um arquivo binario
+
+    FILE *arquivo = fopen("Usuario", "ab");
+    printf("Digite seu CPF \n");
+    scanf("%s", &usuario);
+    fprintf(arquivo,"%s",&usuario);
+    
+    
+    printf("Digite sua senha: \n");
+    scanf("%s", &senha);
+    fprintf(arquivo,"Senha: %s",&senha);
+
+     
+
+
+}
+int usuario(void){
+    int resposta;
+    printf("Ja possui um Login?\n1- Sim\n2- Nao\n");
+    scanf("%d", &resposta);
+    if (resposta == 1)
+    {
+        login();
+    }
+    else if(resposta == 2)
+    {
+        cadastro();
+    }
+    else{
+        printf("Numero invalido!\n");
+        usuario();
+    }
+        
 }
