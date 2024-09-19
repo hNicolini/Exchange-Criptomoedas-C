@@ -39,65 +39,67 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
 
 
 
-
 int login(void){
+    char usuario[80];
+    char senha[80];
 
-//Função Não funcional!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    printf("Digite o nome de usuario:\n");
+    scanf("%s", usuario);
+    printf("Digite sua senha:\n");
+    scanf("%s", senha);
 
-    // char usuario1[80];
-    // char senha[80];    
+    FILE* arquivo = fopen("Usuario", "rb");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return 0;
+    }
+    User loginUsuario;
+    int encontrado = 0;
+    while (fread(&loginUsuario,sizeof(User),1,arquivo))
+    {
+        if (strcmp(loginUsuario.usuario,usuario) ==0  && strcmp(loginUsuario.senha,senha) == 0){
+            encontrado = 1;
+            break;
+        }
+    }
+    fclose(arquivo);
+
+    if (encontrado == 1)
+    {
+        printf("Logado com sucesso, Bem-Vindo - %s \n ", usuario);
+    }
+    else{
+        printf("Nome de usuario ou senha incorreto(s) \n");
+    }
     
-    // printf("Digite o nome de usuario: \n");
-    // scanf("%s", usuario1);
-    // printf("Digite a Senha: \n");
-    // scanf("%s", senha);
+    
 
-    // FILE* arquivo = fopen("Usuario", "rb");
-    // if (arquivo == NULL) {
-    //     printf("Erro ao abrir o arquivo.\n");
-    //     return 0;
-    // }
 
-    // User usuariolido;
 
-    // while (fread(&usuariolido, sizeof(User), 1, arquivo)) {
-    //     if (strcmp(usuariolido.usuario, usuario1) == 0 && strcmp(usuariolido.senha, senha) == 0) {
-    //         fclose(arquivo);
-    //         printf("Logado Com sucesso!");
-    //         return 1;
-
-    //     }
-    // }
-    // printf("Tente Novamente!");
-    // fclose(arquivo);
-    // return 0;
 }
 int cadastro(void){
-    char usuario[80];
-    char senha[30];
-       
-    printf("Digite o nome de usuario: \n");
-    scanf("%s", usuario);
-    printf("Digite a Senha: \n");
-    scanf("%s", senha);
-    if (usuarioExiste("usuario",usuario))
-        
-    {    
-        cadastro();  
+    User novousuario;
+    printf("Digite seu nome de usuario:\n");
+    scanf("%s", novousuario.usuario);
+
+    if(usuarioExiste("Usuario",novousuario.usuario)){
+        printf("Usuario Existente!\n");
+        usuario();
+    } 
+    printf("Digite a sua senha:\n");
+    scanf("%s", novousuario.senha);
+    
+    FILE* arquivo = fopen("Usuario", "ab");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        return 0;
     }
-    
-    else{
-        FILE *arquivo = fopen("Usuario", "ab");
-        User user;
-        fwrite(user.usuario, sizeof(char), strlen(user.usuario), arquivo);
-        fwrite(user.senha, sizeof(char), strlen(user.senha), arquivo);     
-        fclose(arquivo);
-        printf("Usuario Cadastrado com Sucesso\n");
-        login();
-    }
-}       
-    
-    
+    fwrite(&novousuario, sizeof(User),1,arquivo);
+    fclose(arquivo);
+    printf("\nUsuario registrado com sucesso!\n");
+    login();
+}
+
 
 
 
