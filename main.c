@@ -21,9 +21,9 @@ int login(User *loginUsuario) {
     char senha[80];
 
     printf("Digite o CPF:\n");
-    scanf("%s", cpf);
+    fgets(cpf,sizeof(cpf),stdin);
     printf("Digite sua senha:\n");
-    scanf("%s", senha);
+    fgets(senha,sizeof(senha),stdin);
 
     FILE* arquivo = fopen("Usuario", "rb");
     if (arquivo == NULL) {
@@ -45,7 +45,8 @@ int login(User *loginUsuario) {
     fclose(arquivo);
 
     if (encontrado) {
-        printf("Logado com sucesso! Bem-Vindo, %s\n", cpf);
+        printf("Logado com sucesso! Bem-Vindo, %s\n", usuarioLogado.nome);
+        fflush(stdin);
         return 1;
     } else {
         printf("Nome de usuário ou senha incorreto(s)\n");
@@ -125,15 +126,15 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
 int cadastro(void) {
     User novousuario;
     printf("Digite seu CPF:\n");
-    scanf("%s", novousuario.cpf);
-
+    fgets(novousuario.cpf,sizeof(novousuario.cpf),stdin);
     if (usuarioExiste("Usuario", novousuario.cpf)) {
         printf("Usuário existente!\n");
         return 0;
     }
-
+    printf("Digite seu nome: ");
+    fgets(novousuario.nome,sizeof(novousuario.nome),stdin);
     printf("Digite sua senha:\n");
-    scanf("%s", novousuario.senha);
+    fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
 
     novousuario.saldo_reais = 0.0;  
 
@@ -153,16 +154,16 @@ int cadastro(void) {
 
 int usuario(void) {
     int resposta;
-    printf("Já possui um Login?\n1- Sim\n2- Não\n");
+    printf("Já possui um Login?\n1- Sim\n2- Nao\n");
     scanf("%d", &resposta);
-
+    fflush(stdin);
     if (resposta == 1) {
         return 1;  
     } else if (resposta == 2) {
         cadastro();
         return 1;  
     } else {
-        printf("Número inválido!\n");
+        printf("Numero invalido!\n");
         exit(0);
     }
 }
@@ -212,6 +213,7 @@ char menu(void){
     char opcao;
     
     do{
+        fflush(stdin);
         puts("\t\tMenu Principal\n");
         puts("1 - Consultar Saldo");
         puts("2 - Consultar Extrato");
@@ -223,7 +225,7 @@ char menu(void){
         puts("8 - Sair");
 
         printf("\n\t\tOpcao: ");
-        scanf("%c", &opcao);
+        opcao = getchar();
         // vendo se a opcao escolhida da dentro do escopo possivel em ascii
         if(opcao < 49 || opcao > 56){
             puts("Opcao Invalida");
@@ -235,10 +237,10 @@ char menu(void){
     return opcao;
 }
 
-char consultar_saldo(){
+char consultar_saldo(User* usuario){
     char opcao;
-
-    puts("Aqui você consulta o saldo");
+    puts("Saldo na Carteira");
+    printf("Reais: %.2f\n\n",usuario->saldo_reais);
     
     do{
         fflush(stdin); // limpando buffer para não conflitar com scanf
@@ -262,9 +264,6 @@ char consultar_extrato(){
     }while(opcao != 49);
 
     return opcao;
-}
-void depositar(){
-    puts("Aqui você deposita");
 }
 void sacar(){
     puts("Aqui você saca");
@@ -291,7 +290,7 @@ int main(void){
 
                 switch(resposta){
                     case '1':
-                        consultar_saldo();
+                        consultar_saldo(&loginUsuario);
                         break;
 
                     case '2':
@@ -299,7 +298,7 @@ int main(void){
                         break;
 
                     case '3':
-                        depositar();
+                        AdicionarSaldo(&loginUsuario);
                         break;
 
                     case '4':
