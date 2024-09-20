@@ -205,7 +205,7 @@ void alterar_valor_moeda(BolsaCripto valores){
 // tela de menu pós login
 char menu(void){
     char opcao;
-
+    
     do{
         puts("\t\tMenu Principal\n");
         puts("1 - Consultar Saldo");
@@ -273,66 +273,70 @@ void vender_cripto(){
 
 
 int main(void){
-    char resposta,opcao;
-    // usuario();
     BolsaCripto moedas;
-    
+    User loginUsuario;
+
+    char resposta,opcao;
+
+    if (usuario()) {  
+        if (login(&loginUsuario)) {
     // pós login Menu
-    do{
-        resposta = menu();
+            do{
+                resposta = menu();
 
-        switch(resposta){
-            case '1':
-                consultar_saldo();
-                break;
+                switch(resposta){
+                    case '1':
+                        consultar_saldo();
+                        break;
 
-            case '2':
-                consultar_extrato();
-                break;
+                    case '2':
+                        consultar_extrato();
+                        break;
 
-            case '3':
-                depositar();
-                break;
+                    case '3':
+                        depositar();
+                        break;
 
-            case '4':
-                sacar();
-                break;
-            
-            case '5':
-                comprar_cripto();
-                break;
+                    case '4':
+                        sacar();
+                        break;
+                    
+                    case '5':
+                        comprar_cripto();
+                        break;
 
-            case '6':
-                vender_cripto();
-                break;
+                    case '6':
+                        vender_cripto();
+                        break;
 
-            case '7':
-            
-                puts("Valor atual da moeda");
+                    case '7':
+                    
+                        puts("Valor atual da moeda");
 
-                ler_cota(&moedas);
-                printf("bitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
+                        ler_cota(&moedas);
+                        printf("bitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
 
-                alterar_valor_moeda(moedas);
-                ler_cota(&moedas); // salvando valor alterado
+                        alterar_valor_moeda(moedas);
+                        ler_cota(&moedas); // salvando valor alterado
 
-                puts("\nCotação atualizada!");
-                printf("\nbitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
-                
-                do{
-                    fflush(stdin); // limpando buffer para não conflitar com scanf
-                    puts("1 - Voltar");
-                    printf("Opcao: ");
-                    scanf("%c", &opcao);
-                }while(opcao != 49);
+                        puts("\nCotação atualizada!");
+                        printf("\nbitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
+                        
+                        do{
+                            fflush(stdin); // limpando buffer para não conflitar com scanf
+                            puts("1 - Voltar");
+                            printf("Opcao: ");
+                            scanf("%c", &opcao);
+                        }while(opcao != 49);
 
-                break;
-            
-            case '8':
-                puts("\nFim da Sessao.");
-                break;
+                        break;
+                    
+                    case '8':
+                        puts("\nFim da Sessao.");
+                        break;
+                }
+            }while(resposta != '8');
         }
-    }while(resposta != '8');
-
+    }
     return 0;
 }
