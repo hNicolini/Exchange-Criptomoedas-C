@@ -4,20 +4,24 @@
 #include <time.h>
 typedef struct User{
 
-    char usuario[80];
+    char cpf[80];
+    char nome[50];
     char senha[80];
-    float Saldo;
+    float saldo_reais;
+    float saldo_btc;
+    float saldo_eth;
+    float saldo_xrp;
 } User;
 
 
 //Função Login
 
 int login(User *loginUsuario) {
-    char usuario[80];
+    char cpf[80];
     char senha[80];
 
-    printf("Digite o nome de usuario:\n");
-    scanf("%s", usuario);
+    printf("Digite o CPF:\n");
+    scanf("%s", cpf);
     printf("Digite sua senha:\n");
     scanf("%s", senha);
 
@@ -31,7 +35,7 @@ int login(User *loginUsuario) {
     int encontrado = 0;
 
     while (fread(&usuarioLogado, sizeof(User), 1, arquivo)) {
-        if (strcmp(usuarioLogado.usuario, usuario) == 0 && strcmp(usuarioLogado.senha, senha) == 0) {
+        if (strcmp(usuarioLogado.cpf, cpf) == 0 && strcmp(usuarioLogado.senha, senha) == 0) {
             *loginUsuario = usuarioLogado;
             encontrado = 1;
             break;
@@ -41,7 +45,7 @@ int login(User *loginUsuario) {
     fclose(arquivo);
 
     if (encontrado) {
-        printf("Logado com sucesso! Bem-Vindo, %s\n", usuario);
+        printf("Logado com sucesso! Bem-Vindo, %s\n", cpf);
         return 1;
     } else {
         printf("Nome de usuário ou senha incorreto(s)\n");
@@ -57,7 +61,7 @@ int AdicionarSaldo(User *loginUsuario) {
     printf("Digite o valor a adicionar ao saldo: R$ ");
     scanf("%f", &valor);
 
-    loginUsuario->Saldo += valor;  
+    loginUsuario->saldo_reais += valor;  
 
     FILE *arquivo1 = fopen ("Usuario", "wb+");
 
@@ -66,7 +70,7 @@ int AdicionarSaldo(User *loginUsuario) {
 
     FILE *arquivo = fopen("Usuario", "rb");
     fread(loginUsuario,sizeof(User),1,arquivo);
-    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->Saldo);
+    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
     fclose(arquivo);
     return 0;
 }
@@ -78,10 +82,10 @@ int SacarSaldo(User *loginUsuario) {
 
     printf("Digite o valor a ser sacado do saldo: R$ ");
     scanf("%f", &valor);
-    if (valor > loginUsuario->Saldo){
+    if (valor > loginUsuario->saldo_reais){
         printf("Saque Invalido, Dinheiro insuficiente!");
     }
-    loginUsuario->Saldo -= valor;  
+    loginUsuario->saldo_reais -= valor;  
 
     FILE *arquivo1 = fopen ("Usuario", "wb+");
 
@@ -90,7 +94,7 @@ int SacarSaldo(User *loginUsuario) {
 
     FILE *arquivo = fopen("Usuario", "rb");
     fread(loginUsuario,sizeof(User),1,arquivo);
-    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->Saldo);
+    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
     fclose(arquivo);
     return 0;
 }
@@ -106,7 +110,7 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
 
     User usuariolido;
     while (fread(&usuariolido, sizeof(User), 1, arquivo)) {
-        if (strcmp(usuariolido.usuario, nome) == 0) {
+        if (strcmp(usuariolido.cpf, nome) == 0) {
             fclose(arquivo);
             return 1;  
         }
@@ -120,10 +124,10 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
 
 int cadastro(void) {
     User novousuario;
-    printf("Digite seu nome de usuario:\n");
-    scanf("%s", novousuario.usuario);
+    printf("Digite seu CPF:\n");
+    scanf("%s", novousuario.cpf);
 
-    if (usuarioExiste("Usuario", novousuario.usuario)) {
+    if (usuarioExiste("Usuario", novousuario.cpf)) {
         printf("Usuário existente!\n");
         return 0;
     }
@@ -131,7 +135,7 @@ int cadastro(void) {
     printf("Digite sua senha:\n");
     scanf("%s", novousuario.senha);
 
-    novousuario.Saldo = 0.0;  
+    novousuario.saldo_reais = 0.0;  
 
     FILE* arquivo = fopen("Usuario", "ab");
     if (arquivo == NULL) {
