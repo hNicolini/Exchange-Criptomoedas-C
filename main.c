@@ -13,45 +13,55 @@ typedef struct User{
     float saldo_xrp;
 } User;
 
+// limpa o buffer de entrada
+void limpaBuffer() {
+    int c;
+    // Lê e descarta todos os caracteres até o '\n' ou EOF
+    while ((c = getchar()) != '\n' && c != EOF) { }
+}
+
+// procura o usuario
+long seekUser(User* loginUsuario, FILE* arquivo){
+    User usuario;
+
+    while (fread(&usuario, sizeof(User), 1, arquivo)) {
+        if (strcmp(usuario.cpf, loginUsuario->cpf) == 0 && strcmp(usuario.senha, loginUsuario->senha) == 0) {
+            return ftell(arquivo) - sizeof(User);
+
+        }
+       
+    }
+    return -1;
+}
 
 //Função Login
 
 int login(User *loginUsuario) {
-    char cpf[80];
-    char senha[80];
+
 
     printf("Digite o CPF:\n");
-    fgets(cpf,sizeof(cpf),stdin);
+    fgets(loginUsuario->cpf,sizeof(loginUsuario->cpf),stdin);
     printf("Digite sua senha:\n");
-    fgets(senha,sizeof(senha),stdin);
-
+    fgets(loginUsuario->senha,sizeof(loginUsuario->senha),stdin);
     FILE* arquivo = fopen("Usuario", "rb");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo de usuários.\n");
         return 0;
     }
-
-    User usuarioLogado;
-    int encontrado = 0;
-
-    while (fread(&usuarioLogado, sizeof(User), 1, arquivo)) {
-        if (strcmp(usuarioLogado.cpf, cpf) == 0 && strcmp(usuarioLogado.senha, senha) == 0) {
-            *loginUsuario = usuarioLogado;
-            encontrado = 1;
-            break;
-        }
-    }
-
+    long pos = seekUser(loginUsuario, arquivo);
+    fseek(arquivo, pos, SEEK_SET);
+    fread(loginUsuario,sizeof(User),1, arquivo);
     fclose(arquivo);
 
-    if (encontrado) {
-        printf("Logado com sucesso! Bem-Vindo, %s\n", usuarioLogado.nome);
+    if (pos != -1) {
+        printf("Logado com sucesso! Bem-Vindo, %s\n", loginUsuario->nome);
         fflush(stdin);
         return 1;
     } else {
         printf("Nome de usuário ou senha incorreto(s)\n");
         return 0;
     }
+    printf("ERRROOOO");
 }
 
 //Função de deposito de Dinheiro
@@ -61,18 +71,25 @@ int AdicionarSaldo(User *loginUsuario) {
 
     printf("Digite o valor a adicionar ao saldo: R$ ");
     scanf("%f", &valor);
+    limpaBuffer();
+    if(valor > 0){
 
     loginUsuario->saldo_reais += valor;  
-
-    FILE *arquivo1 = fopen ("Usuario", "wb+");
-
-    fwrite(loginUsuario,sizeof(User),1,arquivo1);
+    }
+    else{
+        puts("Digite um valor maior que 0");
+    }
+    FILE *arquivo1 = fopen ("Usuario", "r+b");
+    long pos = seekUser(loginUsuario, arquivo1);
+    fseek(arquivo1,pos,SEEK_SET); // move para o ponto onde está localizado o usuario logado
+    fwrite(loginUsuario,sizeof(User),1,arquivo1); // atualiza o saldo
+    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
     fclose(arquivo1);
 
-    FILE *arquivo = fopen("Usuario", "rb");
-    fread(loginUsuario,sizeof(User),1,arquivo);
-    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
-    fclose(arquivo);
+    // FILE *arquivo = fopen("Usuario", "rb");
+    // fread(loginUsuario,sizeof(User),1,arquivo);
+    // printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
+    // fclose(arquivo);
     return 0;
 }
 
@@ -83,20 +100,21 @@ int SacarSaldo(User *loginUsuario) {
 
     printf("Digite o valor a ser sacado do saldo: R$ ");
     scanf("%f", &valor);
+    limpaBuffer();
+
     if (valor > loginUsuario->saldo_reais){
         printf("Saque Invalido, Dinheiro insuficiente!");
     }
-    loginUsuario->saldo_reais -= valor;  
+    else{
+        loginUsuario->saldo_reais -= valor;
+        FILE *arquivo1 = fopen ("Usuario", "r+b");
+        long pos = seekUser(loginUsuario, arquivo1);
+        fseek(arquivo1,pos,SEEK_SET);
+        fwrite(loginUsuario,sizeof(User),1,arquivo1);
+        printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
+        fclose(arquivo1);
+    }
 
-    FILE *arquivo1 = fopen ("Usuario", "wb+");
-
-    fwrite(loginUsuario,sizeof(User),1,arquivo1);
-    fclose(arquivo1);
-
-    FILE *arquivo = fopen("Usuario", "rb");
-    fread(loginUsuario,sizeof(User),1,arquivo);
-    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
-    fclose(arquivo);
     return 0;
 }
 
@@ -213,7 +231,6 @@ char menu(void){
     char opcao;
     
     do{
-        fflush(stdin);
         puts("\t\tMenu Principal\n");
         puts("1 - Consultar Saldo");
         puts("2 - Consultar Extrato");
@@ -226,6 +243,7 @@ char menu(void){
 
         printf("\n\t\tOpcao: ");
         opcao = getchar();
+        limpaBuffer(); // tirando o \n
         // vendo se a opcao escolhida da dentro do escopo possivel em ascii
         if(opcao < 49 || opcao > 56){
             puts("Opcao Invalida");
@@ -247,6 +265,7 @@ char consultar_saldo(User* usuario){
         puts("1 - Voltar");
         printf("Opcao: ");
         scanf("%c", &opcao);
+        limpaBuffer();
     }while(opcao != 49);
 
     return opcao;
@@ -257,16 +276,14 @@ char consultar_extrato(){
     puts("Aqui você consulta o extrato");
 
    do{
-        fflush(stdin); // limpando buffer para não conflitar com scanf
+        limpaBuffer();
         puts("1 - Voltar");
         printf("Opcao: ");
         scanf("%c", &opcao);
+        limpaBuffer();
     }while(opcao != 49);
 
     return opcao;
-}
-void sacar(){
-    puts("Aqui você saca");
 }
 void comprar_cripto(){
     puts("Aqui você compra criptomoedas");
@@ -302,7 +319,7 @@ int main(void){
                         break;
 
                     case '4':
-                        sacar();
+                        SacarSaldo(&loginUsuario);
                         break;
                     
                     case '5':
@@ -327,10 +344,11 @@ int main(void){
                         printf("\nbitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
                         
                         do{
-                            fflush(stdin); // limpando buffer para não conflitar com scanf
+                            limpaBuffer(); // limpando buffer para não conflitar com scanf
                             puts("1 - Voltar");
                             printf("Opcao: ");
                             scanf("%c", &opcao);
+                            limpaBuffer();
                         }while(opcao != 49);
 
                         break;
