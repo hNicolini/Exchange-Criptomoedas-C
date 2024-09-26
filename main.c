@@ -11,8 +11,23 @@ typedef struct User{
     float saldo_btc;
     float saldo_eth;
     float saldo_xrp;
+    char extrato[100][120];
+    int qntd_extrato;
 } User;
 
+// aqui estão as criptomoedas
+typedef struct BolsaCripto{
+    float bitcoin, ethereum, ripple;
+} BolsaCripto;
+
+// aqui fica as taxas
+typedef struct TxCripto{
+    float buy_bitcoin, sell_bitcoin;
+    float buy_ethereum, sell_ethereum;
+    float buy_ripple, sell_ripple;
+} TxCripto;
+//pegando se o tipo de acao do usuario foi venda ou compra
+enum tipo_acao {VENDA=0, COMPRA=1};
 // limpa o buffer de entrada
 void limpaBuffer() {
     int c;
@@ -154,7 +169,8 @@ int cadastro(void) {
     printf("Digite sua senha:\n");
     fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
 
-    novousuario.saldo_reais = 0.0;  
+    novousuario.saldo_reais = 0.0;
+    novousuario.qntd_extrato = 0;  
 
     FILE* arquivo = fopen("Usuario", "ab");
     if (arquivo == NULL) {
@@ -186,10 +202,40 @@ int usuario(void) {
     }
 }
 
-// aqui estão as criptomoedas
-typedef struct BolsaCripto{
-    float bitcoin, ethereum, ripple;
-} BolsaCripto;
+// salva acao pra colocar no extrato
+void save_acao(int tipo,User* loginUsuario,float valor, char cripto[3],BolsaCripto* criptomoedas, int cota_moeda){
+    TxCripto taxas = {0.02, 0.03, 0.01, 0.02, 0.01, 0.01};
+    time_t seconds;
+    FILE* arquivo = fopen("Usuarios", "r+b");
+    enum tipo_acao realizou = tipo;
+
+    time(&seconds); // pega a data (dds,mmm,ddd,hour,minute,seconds,year)
+    char* data_hora = ctime(&seconds); // pega a string gerada pelo ctime()
+    data_hora[strcspn(data_hora, "\n")] = 0; // Retira um conteudo indesejado na string, no caso o \n
+
+    char signal;
+
+    switch(realizou){
+        case VENDA:
+            signal = '-';
+            break;
+        case COMPRA:
+            signal = '+';
+            switch(cota_moeda){
+                case 1: // BTC
+                sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->bitcoin,taxas.buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                break;
+            }
+            break;
+    }
+
+    loginUsuario->qntd_extrato++;
+    long pos = seekUser(loginUsuario, arquivo);
+    fseek(arquivo,pos,SEEK_SET);
+    fwrite(loginUsuario,sizeof(User),1,arquivo);
+}
+
+
 
 void salvar_cota(BolsaCripto* valores){
     FILE* cotas = fopen("cotas", "wb");
