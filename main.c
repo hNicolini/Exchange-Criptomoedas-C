@@ -223,8 +223,14 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[3],BolsaCrip
             signal = '+';
             switch(cota_moeda){
                 case 1: // BTC
-                sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->bitcoin,taxas.buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                break;
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->bitcoin,taxas.buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    break;
+                case 2: // ETH
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ethereum,taxas.buy_ethereum,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    break;
+                case 3: // XRP
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ripple,taxas.buy_ripple,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    break;
             }
             break;
     }
