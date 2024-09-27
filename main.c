@@ -28,7 +28,7 @@ typedef struct TxCripto{
     float real;
 } TxCripto;
 //pegando se o tipo de acao do usuario foi venda ou compra
-enum tipo_acao {VENDA=0, COMPRA=1};
+enum tipo_acao {VENDA, COMPRA};
 // limpa o buffer de entrada
 void limpaBuffer() {
     int c;
@@ -108,8 +108,8 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_
                 case 4: // REAL
                     sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->real,taxas.real,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
-            break;
              }
+            break;
         case COMPRA:
             signal = '+';
             switch(cota_moeda){
@@ -180,6 +180,8 @@ int SacarSaldo(User *loginUsuario) {
         fwrite(loginUsuario,sizeof(User),1,arquivo1);
         printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
         fclose(arquivo1);
+        save_acao(VENDA,loginUsuario,valor,"REAL",4);
+
     }
 
     return 0;
@@ -190,7 +192,7 @@ int SacarSaldo(User *loginUsuario) {
 int usuarioExiste(char* nomeArquivo, char* nome) {
     FILE* arquivo = fopen(nomeArquivo, "rb");
     if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo de usuários.\n");
+        printf("\n\x1b[32m Primeiro usuario do programa. Olá.\x1b[0m\n");
         return 0;
     }
 
@@ -339,14 +341,13 @@ char consultar_saldo(User* usuario){
 }
 char consultar_extrato(User* usuario){
     char opcao;
-    int limite = usuario->qntd_extrato;
-    printf("\t\tExtrato da conta de %s",usuario->nome);
+    int limite = (usuario->qntd_extrato);
+    printf("\t\tExtrato da conta de %s\n",usuario->nome);
     for(int i = 0; i <= limite; i++ ){
         printf("%s\n",usuario->extrato[i]);
     }
 
    do{
-        limpaBuffer();
         puts("1 - Voltar");
         printf("Opcao: ");
         scanf("%c", &opcao);
@@ -368,7 +369,7 @@ int main(void){
     User loginUsuario;
     ler_cota(&moedas);
     salvar_cota(&moedas);
-    printf("%:.2f", moedas.real);
+
     char resposta,opcao;
 
     if (usuario()) {  
