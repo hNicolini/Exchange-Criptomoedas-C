@@ -100,11 +100,7 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_
     BolsaCripto criptomoedas;
     TxCripto taxas = {0.02, 0.03, 0.01, 0.02, 0.01, 0.01,0.0};
     time_t seconds;
-    // FILE* arquivo = fopen("Usuario", "r+b");
-
-    // if (arquivo == NULL) {
-    // printf("Erro ao abrir o arquivo de usuários em save_acao.\n");
-    // }
+    
     enum tipo_acao realizou = tipo;    
     time(&seconds); // pega a data (dds,mmm,ddd,hour,minute,seconds,year)
     char* data_hora = ctime(&seconds); // pega a string gerada pelo ctime()
