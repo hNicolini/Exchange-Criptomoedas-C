@@ -11,7 +11,7 @@ typedef struct User{
     float saldo_btc;
     float saldo_eth;
     float saldo_xrp;
-    char extrato[100][120];
+    char extrato[100][200];
     int qntd_extrato;
 } User;
 
@@ -39,32 +39,35 @@ void limpaBuffer() {
 // procura o usuario
 long seekUser(User* loginUsuario, FILE* arquivo){
     User usuario;
-
+    long pos = -1;
     while (fread(&usuario, sizeof(User), 1, arquivo)) {
+      
         if (strcmp(usuario.cpf, loginUsuario->cpf) == 0 && strcmp(usuario.senha, loginUsuario->senha) == 0) {
-            return ftell(arquivo) - sizeof(User);
+           
+            pos =  ftell(arquivo) - sizeof(User);
 
         }
        
     }
-    return -1;
+    return pos;
 }
 
 //Função Login
 
 int login(User *loginUsuario) {
-
-
+    FILE* arquivo = fopen("Usuario", "rb");
+    if (arquivo == NULL) {
+        printf("\x1b[31mNenhum usuario cadastrado.\x1b[0m\n");
+        return 0;
+    }
     printf("Digite o CPF:\n");
     fgets(loginUsuario->cpf,sizeof(loginUsuario->cpf),stdin);
     printf("Digite sua senha:\n");
     fgets(loginUsuario->senha,sizeof(loginUsuario->senha),stdin);
-    FILE* arquivo = fopen("Usuario", "rb");
-    if (arquivo == NULL) {
-        printf("\x1b[31mNenhum usuário cadastrado.\x1[0m\n");
-        return 0;
-    }
+    
+
     long pos = seekUser(loginUsuario, arquivo);
+    printf("%ld\n", pos);
     fseek(arquivo, pos, SEEK_SET);
     fread(loginUsuario,sizeof(User),1, arquivo);
     fclose(arquivo);
@@ -74,17 +77,34 @@ int login(User *loginUsuario) {
         fflush(stdin);
         return 1;
     } else {
-        printf("Nome de usuário ou senha incorreto(s)\n");
+        printf("Nome de usuario ou senha incorreto(s)\n");
         return 0;
     }
-    printf("ERRROOOO");
+}
+// salva  o usuario no arquivo
+void save_user(User* usuario){
+    FILE* arquivo = fopen("Usuario", "r+b");
+    if(arquivo == NULL){printf("Erro ao abrr o arquivo para salvar usuario");}
+    
+    long pos = seekUser(usuario, arquivo);
+    if(pos != -1){
+        fseek(arquivo,pos,SEEK_SET);
+        fwrite(usuario,sizeof(User),1,arquivo);
+    }else{
+        printf("NAO ACHOU  O USUARIO");
+    }
+    fclose(arquivo);
 }
 // salva acao pra colocar no extrato
 void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_moeda){
-    BolsaCripto* criptomoedas;
+    BolsaCripto criptomoedas;
     TxCripto taxas = {0.02, 0.03, 0.01, 0.02, 0.01, 0.01,0.0};
     time_t seconds;
-    FILE* arquivo = fopen("Usuarios", "r+b");
+    // FILE* arquivo = fopen("Usuario", "r+b");
+
+    // if (arquivo == NULL) {
+    // printf("Erro ao abrir o arquivo de usuários em save_acao.\n");
+    // }
     enum tipo_acao realizou = tipo;    
     time(&seconds); // pega a data (dds,mmm,ddd,hour,minute,seconds,year)
     char* data_hora = ctime(&seconds); // pega a string gerada pelo ctime()
@@ -97,16 +117,16 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_
             signal = '-';
              switch(cota_moeda){
                 case 1: // BTC
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->bitcoin,taxas.buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.bitcoin,taxas.buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
                 case 2: // ETH
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ethereum,taxas.buy_ethereum,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.ethereum,taxas.buy_ethereum,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
                 case 3: // XRP
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ripple,taxas.buy_ripple,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.ripple,taxas.buy_ripple,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
                 case 4: // REAL
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->real,taxas.real,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.real,taxas.real,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
              }
             break;
@@ -114,26 +134,22 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_
             signal = '+';
             switch(cota_moeda){
                 case 1: // BTC
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->bitcoin,taxas.buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.bitcoin,taxas.buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
                 case 2: // ETH
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ethereum,taxas.buy_ethereum,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.ethereum,taxas.buy_ethereum,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
                 case 3: // XRP
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ripple,taxas.buy_ripple,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.ripple,taxas.buy_ripple,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
                 case 4: // REAL
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->real,taxas.real,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
+                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas.real,taxas.real,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
                     break;
             }
             break;
     }
-    long pos = seekUser(loginUsuario, arquivo);
-    fseek(arquivo,pos,SEEK_SET);
-    fwrite(loginUsuario,sizeof(User),1,arquivo);
-    fclose(arquivo);
-    loginUsuario->qntd_extrato = (loginUsuario->qntd_extrato) + 1;
-
+    loginUsuario->qntd_extrato++;
+    save_user(loginUsuario);
 }
 //Função de deposito de Dinheiro
 
@@ -150,12 +166,10 @@ int AdicionarSaldo(User *loginUsuario) {
     else{
         puts("Digite um valor maior que 0");
     }
-    FILE *arquivo1 = fopen ("Usuario", "r+b");
-    long pos = seekUser(loginUsuario, arquivo1);
-    fseek(arquivo1,pos,SEEK_SET); // move para o ponto onde está localizado o usuario logado
-    fwrite(loginUsuario,sizeof(User),1,arquivo1); // atualiza o saldo
+    
     printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
-    fclose(arquivo1);
+   
+    save_user(loginUsuario);
     save_acao(COMPRA,loginUsuario,valor,"REAL",4);
 
     return 0;
@@ -175,12 +189,9 @@ int SacarSaldo(User *loginUsuario) {
     }
     else{
         loginUsuario->saldo_reais -= valor;
-        FILE *arquivo1 = fopen ("Usuario", "r+b");
-        long pos = seekUser(loginUsuario, arquivo1);
-        fseek(arquivo1,pos,SEEK_SET);
-        fwrite(loginUsuario,sizeof(User),1,arquivo1);
         printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
-        fclose(arquivo1);
+        
+        save_user(loginUsuario);
         save_acao(VENDA,loginUsuario,valor,"REAL",4);
 
     }
@@ -221,8 +232,10 @@ int cadastro(void) {
     }
     printf("Digite seu nome: ");
     fgets(novousuario.nome,sizeof(novousuario.nome),stdin);
+
     printf("Digite sua senha:\n");
     fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
+
 
     novousuario.saldo_reais = 0.0;
     novousuario.saldo_btc = 0.0;
@@ -239,7 +252,6 @@ int cadastro(void) {
 
     fwrite(&novousuario, sizeof(User), 1, arquivo);
     fclose(arquivo);
-    printf("\nUsuário registrado com sucesso!\n");
     return 1;
 }
 
@@ -346,7 +358,7 @@ char consultar_extrato(User* usuario){
     printf("\n%d\n", limite);
     printf("\t\tExtrato da conta de %s\n",usuario->nome);
     for(int i = 0; i < limite; i++ ){
-        printf("A POSICAO É %d,%s\n",i,usuario->extrato[i]);
+        printf("%s\n",usuario->extrato[i]);
     }
 
    do{
