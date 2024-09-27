@@ -61,7 +61,7 @@ int login(User *loginUsuario) {
     fgets(loginUsuario->senha,sizeof(loginUsuario->senha),stdin);
     FILE* arquivo = fopen("Usuario", "rb");
     if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo de usuários.\n");
+        printf("\x1b[31mNenhum usuário cadastrado.\x1[0m\n");
         return 0;
     }
     long pos = seekUser(loginUsuario, arquivo);
@@ -128,11 +128,12 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_
             }
             break;
     }
-    loginUsuario->qntd_extrato = loginUsuario->qntd_extrato + 1;
     long pos = seekUser(loginUsuario, arquivo);
     fseek(arquivo,pos,SEEK_SET);
     fwrite(loginUsuario,sizeof(User),1,arquivo);
     fclose(arquivo);
+    loginUsuario->qntd_extrato = (loginUsuario->qntd_extrato) + 1;
+
 }
 //Função de deposito de Dinheiro
 
@@ -192,7 +193,7 @@ int SacarSaldo(User *loginUsuario) {
 int usuarioExiste(char* nomeArquivo, char* nome) {
     FILE* arquivo = fopen(nomeArquivo, "rb");
     if (arquivo == NULL) {
-        printf("\n\x1b[32m Primeiro usuario do programa. Olá.\x1b[0m\n");
+        printf("\n\x1b[32m Primeiro usuario do programa. Olá.\x1b[0m\n\n");
         return 0;
     }
 
@@ -342,9 +343,10 @@ char consultar_saldo(User* usuario){
 char consultar_extrato(User* usuario){
     char opcao;
     int limite = (usuario->qntd_extrato);
+    printf("\n%d\n", limite);
     printf("\t\tExtrato da conta de %s\n",usuario->nome);
-    for(int i = 0; i <= limite; i++ ){
-        printf("%s\n",usuario->extrato[i]);
+    for(int i = 0; i < limite; i++ ){
+        printf("A POSICAO É %d,%s\n",i,usuario->extrato[i]);
     }
 
    do{
