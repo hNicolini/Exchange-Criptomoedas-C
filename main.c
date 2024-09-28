@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#define LIMITE_USUARIOS 10
 typedef struct User{
 
     char cpf[80];
@@ -52,6 +53,20 @@ long seekUser(User* loginUsuario, FILE* arquivo){
     return pos;
 }
 
+// verificando se é possivel cadastrar novos usuarios
+int usuer_limit_over(char* nome_arquivo){
+    FILE* arquivo = fopen(nome_arquivo, "rb");
+    if(arquivo == NULL){
+        return 0; // se o arquivo não existir é possivel cadastrar usuarios
+    }
+    fseek(arquivo,0,SEEK_END);
+    unsigned int tamanho_arquivo = ftell(arquivo); // pegando o tamanho total do arquivo
+    fclose(arquivo);
+    if(tamanho_arquivo < sizeof(User)*LIMITE_USUARIOS){
+        return 0;
+    }
+    return 1;
+}
 //Função Login
 
 int login(User *loginUsuario) {
@@ -259,14 +274,21 @@ int cadastro(void) {
 
 int usuario(void) {
     int resposta;
-    printf("Já possui um Login?\n1- Sim\n2- Nao\n");
+    printf("Ja possui um Login?\n1- Sim\n2- Nao\n");
     scanf("%d", &resposta);
     fflush(stdin);
     if (resposta == 1) {
         return 1;  
     } else if (resposta == 2) {
-        cadastro();
-        return 1;  
+        int users_excedido = usuer_limit_over("Usuario");
+        if(users_excedido){
+            printf("Numero maximo de usuarios atingidos!");
+            exit(0);
+        }
+        else{
+            cadastro();
+            return 1;
+        }
     } else {
         printf("Numero invalido!\n");
         exit(0);
@@ -383,7 +405,6 @@ int main(void){
     User loginUsuario;
     ler_cota(&moedas);
     salvar_cota(&moedas);
-
     char resposta,opcao;
 
     if (usuario()) {  
