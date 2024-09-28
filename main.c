@@ -196,23 +196,30 @@ int AdicionarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
 
 int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     float valor;
+    char senha[80];
+    printf("Digite sua senha: ");
+    fgets(senha,sizeof(senha),stdin);
+    
+    if(strcmp(senha,loginUsuario->senha) == 0){
+        printf("Digite o valor a ser sacado do saldo: R$ ");
+        scanf("%f", &valor);
+        limpaBuffer();
 
-    printf("Digite o valor a ser sacado do saldo: R$ ");
-    scanf("%f", &valor);
-    limpaBuffer();
+        if (valor > loginUsuario->saldo_reais){
+            printf("Saque Invalido, Dinheiro insuficiente!");
+        }
+        else{
+            loginUsuario->saldo_reais -= valor;
+            printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
+            
+            save_user(loginUsuario);
+            save_acao(VENDA,loginUsuario,valor,"REAL",4,moedas, taxas);
 
-    if (valor > loginUsuario->saldo_reais){
-        printf("Saque Invalido, Dinheiro insuficiente!");
+        }
     }
     else{
-        loginUsuario->saldo_reais -= valor;
-        printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
-        
-        save_user(loginUsuario);
-        save_acao(VENDA,loginUsuario,valor,"REAL",4,moedas, taxas);
-
+        puts("Senha Inválida.");
     }
-
     return 0;
 }
 
@@ -417,7 +424,16 @@ char consultar_extrato(User* usuario){
     return opcao;
 }
 void comprar_cripto(){
+    char opcao;
+    
+    
     puts("Aqui você compra criptomoedas");
+     do{
+        puts("1 - Voltar");
+        printf("Opcao: ");
+        scanf("%c", &opcao);
+        limpaBuffer();
+    }while(opcao != 49);
 }
 void vender_cripto(){
     puts("Aqui você vende suas criptomoedas");
