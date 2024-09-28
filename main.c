@@ -199,7 +199,7 @@ int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     char senha[80];
     printf("Digite sua senha: ");
     fgets(senha,sizeof(senha),stdin);
-    
+
     if(strcmp(senha,loginUsuario->senha) == 0){
         printf("Digite o valor a ser sacado do saldo: R$ ");
         scanf("%f", &valor);
@@ -427,7 +427,7 @@ void comprar_cripto(){
     char opcao;
     
     
-    puts("Aqui você compra criptomoedas");
+    
      do{
         puts("1 - Voltar");
         printf("Opcao: ");
