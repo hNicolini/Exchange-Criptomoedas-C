@@ -34,10 +34,18 @@
 
 ### Execução
   - Após a obtenção das bibliotecas e macros obtida pelas diretivas, o código é traduzido para linguagem máquina, onde é gerado o arquivo executável para utilização do programa. Utilizando Windows, digite o comando ```nomeexecutavel.exe``` para rodar o código traduzido.
-  - Ao ser executado o código é jogado na memória e processado pela CPU, exibindo assim as saídas e toda lógica definida no código.
+  - Ao ser executado o código é jogado na memória e processado pela CPU, exibindo assim as saídas e também criando arquivos binários para armazenamento conforme definido na estrutura do código.
 
 ## Como usar
-  Ao executar o processamento do programa vai ser apresentado uma tela inicial de login
+  - Ao executar o processamento do programa vai ser apresentado uma tela inicial de login
+    ![image](https://github.com/user-attachments/assets/d3241457-1700-4d16-bec4-f082bb0427db)
+    
+    Nela você pode escolher se pretende criar uma conta ou entrar em uma já existente, onde será pedido CPF, senha e nome de usuário.
+  Independente da opção escolhida, será gerenciado um arquivo binário chamado Usuario (caso seja o primeiro acesso o arquivo será criado) utilizado para armazenar os dados dos usuarios.
+  - Após a efetuação do login é mostrado uma tela de
+  
+    
+
      
   
    
