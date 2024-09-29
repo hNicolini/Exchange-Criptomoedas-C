@@ -214,7 +214,7 @@ int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     printf("\t\tSacar Real\n");
 
     if(check_password(loginUsuario->senha)){
-        printf("Quanto você deseja sacar: ");
+        printf("Quanto voce deseja sacar: ");
         scanf("%f", &valor);
         limpaBuffer();
         if (valor > loginUsuario->saldo_reais){
