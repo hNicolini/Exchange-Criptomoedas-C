@@ -38,7 +38,6 @@ void limpaBuffer() {
     // Lê e descarta todos os caracteres até o '\n' ou EOF
     while ((c = getchar()) != '\n' && c != EOF) { }
 }
-
 // procura o usuario
 long seekUser(User* loginUsuario, FILE* arquivo){
     User usuario;
