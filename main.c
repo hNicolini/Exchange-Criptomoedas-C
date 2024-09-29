@@ -192,19 +192,24 @@ int AdicionarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     return 0;
 }
 
+
+// funcao para verificar  a senha do usuario
+int check_password(char* user_senha){
+    char senha[80];
+    printf("Digite sua senha: ");
+    fgets(senha,sizeof(senha),stdin);
+    if(strcmp(senha,user_senha) == 0){
+        return 1;
+    }
+    return 0;
+}
+
 //Função de saque de dinheiro
 
 int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     float valor;
-    char senha[80];
-    printf("Digite sua senha: ");
-    fgets(senha,sizeof(senha),stdin);
-
-    if(strcmp(senha,loginUsuario->senha) == 0){
-        printf("Digite o valor a ser sacado do saldo: R$ ");
-        scanf("%f", &valor);
-        limpaBuffer();
-
+    
+    if(check_password(loginUsuario->senha)){
         if (valor > loginUsuario->saldo_reais){
             printf("Saque Invalido, Dinheiro insuficiente!");
         }
@@ -423,13 +428,141 @@ char consultar_extrato(User* usuario){
 
     return opcao;
 }
-void comprar_cripto(){
+
+int check_buy_sell(int tipo, float valor, float  cota, float possui_reais,float possui_moeda,float taxa){
+
+    switch(tipo){
+        case COMPRA:
+            if(valor <= 0 || valor > possui_reais){
+                return 0; // não pode comprar
+            }
+            
+            else if((possui_reais-=valor + (valor*taxa)) < 0){
+                return 0;
+            }
+            return 1; // pode comprar
+        case VENDA:
+            if(valor <= 0 || valor > (possui_moeda*cota)){
+                return 0; //  pode comprar
+            }
+            return 1; // pode vender
+    }
+}
+
+void comprar_cripto(User* usuario, BolsaCripto* cotas,  TxCripto* taxas){
     char opcao;
+    float valor;
+    char confirm;
+    int pode;
     
+    puts("\t\tComprar criptomoedas\n");
+    printf("1 - Bitcoin: %.2f\n",cotas->bitcoin);
+    printf("2 - Ethereum: %.2f\n",cotas->ethereum);
+    printf("3 - Ripple: %.2f\n",cotas->ripple);
+
+    printf("Qual das opcoes deseja  comprar: ");
+    opcao = getchar();
+    limpaBuffer();
     
-    
-     do{
-        puts("1 - Voltar");
+    switch(opcao){
+        case '1':
+            printf("Quantos R$ deseja aplicar em bitcoin: ");
+            scanf("%f",&valor);
+            limpaBuffer();
+            pode = check_buy_sell(COMPRA,valor,cotas->bitcoin,usuario->saldo_reais,usuario->saldo_btc,taxas->buy_bitcoin);
+            if(pode){
+                if(check_password(usuario->senha)){
+                    printf("Você vai ter %.4f e sera combrado uma taxa de %.0f%c\n", valor/cotas->bitcoin,taxas->buy_bitcoin*100,37);
+                    printf("[1] Confirmar / [0] Cancelar");
+                    confirm = getchar();
+                    limpaBuffer();
+                    if(confirm == '1'){
+                        usuario->saldo_reais -= valor  + (valor*taxas->buy_bitcoin);
+                        usuario->saldo_btc += valor/cotas->bitcoin;
+                        save_acao(COMPRA,usuario,valor,"BTC",cotas->bitcoin,cotas,taxas);
+
+                        puts("Compra Realizada!");
+
+                    }
+                    else{
+                        puts("Compra Cancelada");
+                    }
+                }
+                else{
+                    puts("Senha invalida");
+                }
+            }
+            else{
+                printf("Impossivel realizar compra.");
+            }
+            break;
+
+         case '2':
+            printf("Quantos R$ deseja aplicar em Ethereum: ");
+            scanf("%f",&valor);
+            limpaBuffer();
+            pode = check_buy_sell(COMPRA,valor,cotas->ethereum,usuario->saldo_reais,usuario->saldo_eth,taxas->buy_ethereum);
+            if(pode){
+                if(check_password(usuario->senha)){
+                    printf("Você vai ter %.4f e sera combrado uma taxa de %.0f%c\n", valor/cotas->ethereum,taxas->buy_ethereum*100,37);
+                    printf("[1] Confirmar / [0] Cancelar: ");
+                    confirm = getchar();
+                    limpaBuffer();
+                    if(confirm == '1'){
+                        usuario->saldo_reais -= valor  + (valor*taxas->buy_ethereum);
+                        usuario->saldo_eth += valor/cotas->ethereum;
+
+                        save_acao(COMPRA,usuario,valor,"ETH",cotas->ethereum,cotas,taxas);
+                        puts("Compra Realizada!");
+
+                    }
+                    else{
+                        puts("Compra Cancelada");
+                    }
+                }
+                else{
+                    puts("Senha invalida");
+                }
+            }
+            else{
+                printf("Impossivel realizar compra.");
+            }
+            break;
+
+         case '3':
+            printf("Quantos R$ deseja aplicar em ripple: ");
+            scanf("%f",&valor);
+            limpaBuffer();
+            pode = check_buy_sell(COMPRA,valor,cotas->ripple,usuario->saldo_reais,usuario->saldo_xrp,taxas->buy_ripple);
+            if(pode){
+                if(check_password(usuario->senha)){
+                    printf("Você vai ter %.4f e sera combrado uma taxa de %.0f%c\n", valor/cotas->ripple,taxas->buy_ripple*100,37);
+                    printf("[1] Confirmar / [0] Cancelar");
+                    confirm = getchar();
+                    limpaBuffer();
+                    if(confirm == '1'){
+                        usuario->saldo_reais -= valor  + (valor*taxas->buy_ripple);
+                        usuario->saldo_xrp += valor/cotas->ripple;
+                        save_acao(COMPRA,usuario,valor,"XRP",cotas->ripple,cotas,taxas);
+                        puts("Compra Realizada!");
+                    }
+                    else{
+                        puts("Compra Cancelada");
+                    }
+                }
+                else{
+                    puts("Senha invalida");
+                }
+            }
+            else{
+                printf("Impossivel realizar compra.");
+            }
+            break;
+    }
+
+
+    do{
+        puts("\n1 - Voltar");
         printf("Opcao: ");
         scanf("%c", &opcao);
         limpaBuffer();
@@ -487,7 +620,7 @@ int main(void){
                         break;
                     
                     case '5':
-                        comprar_cripto();
+                        comprar_cripto(&loginUsuario,&moedas,&taxas);
                         break;
 
                     case '6':
