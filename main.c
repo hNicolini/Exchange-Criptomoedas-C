@@ -83,26 +83,31 @@ int login(User *loginUsuario) {
     printf("Digite sua senha: ");
     fgets(loginUsuario->senha,sizeof(loginUsuario->senha),stdin);
     
+    
 
     long pos = seekUser(loginUsuario, arquivo);
-   
-    fseek(arquivo, pos, SEEK_SET);
-    fread(loginUsuario,sizeof(User),1, arquivo);
-    fclose(arquivo);
-
-    if (pos != -1) {
+   if (pos != -1) {
+        fseek(arquivo, pos, SEEK_SET);
+        fread(loginUsuario,sizeof(User),1, arquivo);
+        fclose(arquivo);
         printf("Logado com sucesso! Bem-Vindo, %s\n", loginUsuario->nome);
-        fflush(stdin);
         return 1;
-    } else {
+    } 
+    else if(pos == -1) {
         printf("Nome de usuario ou senha incorreto(s)\n");
+        fclose(arquivo);
         return 0;
     }
+    
 }
 // salva  o usuario no arquivo
 void save_user(User* usuario){
     FILE* arquivo = fopen("Usuario", "r+b");
-    if(arquivo == NULL){printf("Erro ao abrr o arquivo para salvar usuario");}
+    if(arquivo == NULL){
+        printf("Erro ao abrr o arquivo para salvar usuario");
+        fclose(arquivo);
+        exit(1);
+        }
     
     long pos = seekUser(usuario, arquivo);
     if(pos != -1){
@@ -241,6 +246,7 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
     FILE* arquivo = fopen(nomeArquivo, "rb");
     if (arquivo == NULL) {
         printf("\n\x1b[32m Primeiro usuario do programa. Ola.\x1b[0m\n\n");
+        
         return 0;
     }
 
@@ -322,7 +328,8 @@ void salvar_cota(BolsaCripto* valores){
     FILE* cotas = fopen("cotas", "wb");
     // Salvando cotas em arquivo binario
     if(cotas == NULL){
-        printf("Não foi possivel abrir o arquivo para escrever");
+        printf("Não foi possivel abrir o arquivo para salvar cotas");
+        exit(1);
     }
     fwrite(valores,sizeof(BolsaCripto),1, cotas);
     fclose(cotas);
@@ -331,11 +338,22 @@ void ler_cota(BolsaCripto* valores){
     FILE* cotas = fopen("cotas", "rb");
     if(cotas == NULL){
         printf("Não foi possivel abrir o arquivo para ler");
+        valores->bitcoin = 357791.34;
+        valores->ethereum = 14355.80;
+        valores->ripple = 3.50;
+        valores->real = 0.0;
+        return;
     }
-    fread(valores, sizeof(BolsaCripto), 1, cotas);
+    if (fread(valores, sizeof(BolsaCripto), 1, cotas) != 1) {
+        printf("Erro ao ler as cotas.\n");
+        valores->bitcoin = 357791.34;
+        valores->ethereum = 14355.80;
+        valores->ripple = 3.50;
+        valores->real = 0.0;
+    }
     fclose(cotas);
 }
-void alterar_valor_moeda(BolsaCripto valores){
+void alterar_valor_moeda(BolsaCripto* valores){
     // gerando o numero aleatorio entre -5% e 5%
     srand(time(NULL));
     float numero_gerado =((rand() % 5) + 1.0)/100.0;
@@ -345,13 +363,12 @@ void alterar_valor_moeda(BolsaCripto valores){
     }
     printf("\nAumentou/Diminuiu %.2f%c \n",numero_gerado*100.0,37);
     //  calculando os bytes para percorrer os valores 1 por 1 (4 em 4 bytes) na struct
-   size_t len_bolsa = sizeof(valores);
-   for(size_t indice = 0; indice < len_bolsa; indice += sizeof(float)){
-        float* pos_bolsa = (float*)((char*)&valores + indice); // char (1 byte) de moedas é somado com valor atual de indice, após e realizado conversão para float, podendo caminhar pelas variaveis floats(4 bytes) do struct
+    valores->bitcoin += valores->bitcoin * numero_gerado;
+    valores->ethereum += valores->ethereum * numero_gerado;
+    valores->ripple += valores->ripple * numero_gerado;
+    
 
-        *pos_bolsa += (*pos_bolsa)*numero_gerado;
-   }
-   salvar_cota(&valores);
+   salvar_cota(valores);
 }
 
 void salvar_taxa(TxCripto* taxas){
@@ -369,8 +386,25 @@ void ler_taxa(TxCripto* taxas){
 
     if(arquivo == NULL){
         printf("Não foi possivel ler o arquivo de taxas");
+        taxas->buy_bitcoin = 0.02;
+        taxas->sell_bitcoin = 0.03;
+        taxas->buy_ethereum = 0.01;
+        taxas->sell_ethereum = 0.02;
+        taxas->buy_ripple = 0.01;
+        taxas->sell_ripple = 0.01;
+        taxas->real = 0.0;
+        return;
     }
-    fread(taxas, sizeof(TxCripto),1,arquivo);
+    if (fread(taxas, sizeof(TxCripto), 1, arquivo) != 1){
+        printf("Erro ao ler as taxas.\n");
+        taxas->buy_bitcoin = 0.02;
+        taxas->sell_bitcoin = 0.03;
+        taxas->buy_ethereum = 0.01;
+        taxas->sell_ethereum = 0.02;
+        taxas->buy_ripple = 0.01;
+        taxas->sell_ripple = 0.01;
+        taxas->real = 0.0;
+    }
     fclose(arquivo);
 }
 // tela de menu pós login
@@ -413,7 +447,7 @@ char consultar_saldo(User* usuario){
     do{
         puts("1 - Voltar");
         printf("Opcao: ");
-        scanf("%c", &opcao);
+        opcao = getchar();
         limpaBuffer();
     }while(opcao != 49);
 
@@ -431,7 +465,7 @@ char consultar_extrato(User* usuario){
    do{
         puts("1 - Voltar");
         printf("Opcao: ");
-        scanf("%c", &opcao);
+        opcao = getchar();
         limpaBuffer();
     }while(opcao != 49);
 
@@ -573,7 +607,7 @@ void comprar_cripto(User* usuario, BolsaCripto* cotas,  TxCripto* taxas){
     do{
         puts("\n1 - Voltar");
         printf("Opcao: ");
-        scanf("%c", &opcao);
+        opcao = getchar();
         limpaBuffer();
     }while(opcao != 49);
 }
@@ -692,7 +726,7 @@ void vender_cripto(User* usuario, BolsaCripto* cotas, TxCripto* taxas){
     do{
         puts("\n1 - Voltar");
         printf("Opcao: ");
-        scanf("%c", &opcao);
+        opcao = getchar();
         limpaBuffer();
     }while(opcao != 49);
 }
@@ -750,7 +784,7 @@ int main(void){
                         ler_cota(&moedas);
                         printf("bitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
 
-                        alterar_valor_moeda(moedas);
+                        alterar_valor_moeda(&moedas);
                         ler_cota(&moedas); // salvando valor alterado
 
                         puts("\nCotacao atualizada!");
@@ -759,7 +793,7 @@ int main(void){
                         do{
                             puts("1 - Voltar");
                             printf("Opcao: ");
-                            scanf("%c", &opcao);
+                            opcao = getchar();
                             limpaBuffer();
                         }while(opcao != 49);
 
