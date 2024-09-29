@@ -337,7 +337,7 @@ void salvar_cota(BolsaCripto* valores){
 void ler_cota(BolsaCripto* valores){
     FILE* cotas = fopen("cotas", "rb");
     if(cotas == NULL){
-        printf("Não foi possivel abrir o arquivo para ler");
+        printf("Não foi possivel abrir o arquivo para ler\n");
         valores->bitcoin = 357791.34;
         valores->ethereum = 14355.80;
         valores->ripple = 3.50;
@@ -385,7 +385,7 @@ void ler_taxa(TxCripto* taxas){
     FILE* arquivo = fopen("taxas", "rb");
 
     if(arquivo == NULL){
-        printf("Não foi possivel ler o arquivo de taxas");
+        printf("Não foi possivel ler o arquivo de taxas\n");
         taxas->buy_bitcoin = 0.02;
         taxas->sell_bitcoin = 0.03;
         taxas->buy_ethereum = 0.01;
