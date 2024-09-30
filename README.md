@@ -134,7 +134,7 @@
 
 ## Créditos
    - Kaio Custodio (22.224.028-5)
-   - Henrique Nicolini ()
+   - Henrique Nicolini (22.124.049-2)
   
     
 
