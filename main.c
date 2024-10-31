@@ -1,10 +1,11 @@
-#include <investidor.c>
+#include <investidor.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #define LIMITE_USUARIOS 10
 #define LIMITE_EXTRATOS 100
+
 typedef struct User{
 
     char cpf[80];
@@ -30,9 +31,11 @@ typedef struct TxCripto{
     float buy_ripple, sell_ripple;
     float real;
 } TxCripto;
+
 //pegando se o tipo de acao do usuario foi venda ou compra
 enum tipo_acao {VENDA, COMPRA};
 enum indice_moeda{BTC=1,ETH=2,XRP=3,REAL=4};
+
 // limpa o buffer de entrada
 void limpaBuffer() {
     int c;
