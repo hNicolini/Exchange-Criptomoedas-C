@@ -116,7 +116,7 @@ void save_user(User* usuario){
     }
     fclose(arquivo);
 }
-// salva acao pra colocar no extrato
+// salva acao pra colocar no extrato ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_moeda, BolsaCripto* criptomoedas, TxCripto* taxas){
     
     time_t seconds;
@@ -173,8 +173,8 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_
     loginUsuario->qntd_extrato++;
     save_user(loginUsuario);
 }
-//Função de deposito de Dinheiro
 
+//Função de deposito de Dinheiro ### PRECISA SER ALTERADA PARA FICAR FICAR PROGRAMAVEL
 int AdicionarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     float valor;
     printf("\t\tDepositar Real\n");
@@ -210,8 +210,7 @@ int check_password(char* user_senha){
     return 0;
 }
 
-//Função de saque de dinheiro
-
+//Função de saque de dinheiro ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     float valor;
     printf("\t\tSacar Real\n");
@@ -239,7 +238,6 @@ int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
 }
 
 //função de Verificação de usuario
-
 int usuarioExiste(char* nomeArquivo, char* nome) {
     FILE* arquivo = fopen(nomeArquivo, "rb");
     if (arquivo == NULL) {
@@ -260,8 +258,7 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
     return 0;  
 }
 
-//Função de Cadastro
-
+//Função de Cadastro ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 int cadastro(void) {
     User novousuario;
     printf("\t\tCadastro\n");
@@ -278,11 +275,7 @@ int cadastro(void) {
     fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
 
 
-    novousuario.saldo_reais = 0.0;
-    novousuario.saldo_btc = 0.0;
-    novousuario.saldo_eth = 0.0;
-    novousuario.saldo_xrp = 0.0;
-    novousuario.qntd_extrato = 0;
+    novousuario.saldos = NULL;
     
 
     FILE* arquivo = fopen("Usuario", "ab");
@@ -297,7 +290,6 @@ int cadastro(void) {
 }
 
 //Função de acesso a pagina de login e cadastro de usuarios
-
 int usuario(void) {
     int resposta;
     printf("Ja possui um Login?\n1- Sim\n2- Nao\n");
@@ -332,6 +324,8 @@ void salvar_cota(BolsaCripto* valores){
     fwrite(valores,sizeof(BolsaCripto),1, cotas);
     fclose(cotas);
 }
+
+// ### ler_cota PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 void ler_cota(BolsaCripto* valores){
     FILE* cotas = fopen("cotas", "rb");
     if(cotas == NULL){
@@ -351,6 +345,8 @@ void ler_cota(BolsaCripto* valores){
     }
     fclose(cotas);
 }
+
+// alterar_valor_moeda ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 void alterar_valor_moeda(BolsaCripto* valores){
     // gerando o numero aleatorio entre -5% e 5%
     srand(time(NULL));
@@ -405,6 +401,7 @@ void ler_taxa(TxCripto* taxas){
     }
     fclose(arquivo);
 }
+
 // tela de menu pós login
 char menu(void){
     char opcao;
@@ -434,6 +431,7 @@ char menu(void){
     return opcao;
 }
 
+// consultar_saldo ## PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 char consultar_saldo(User* usuario){
     char opcao;
     puts("\t\tSaldo na Carteira\n\n");
@@ -451,6 +449,7 @@ char consultar_saldo(User* usuario){
 
     return opcao;
 }
+
 char consultar_extrato(User* usuario){
     char opcao;
     int limite = (usuario->qntd_extrato);
@@ -490,6 +489,7 @@ int check_buy_sell(int tipo, float valor, float  cota, float possui_reais,float 
     }
 }
 
+// comprar_cripto ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 void comprar_cripto(User* usuario, BolsaCripto* cotas,  TxCripto* taxas){
     char opcao;
     float valor;
@@ -609,6 +609,8 @@ void comprar_cripto(User* usuario, BolsaCripto* cotas,  TxCripto* taxas){
         limpaBuffer();
     }while(opcao != 49);
 }
+
+// vender_cripto ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 void vender_cripto(User* usuario, BolsaCripto* cotas, TxCripto* taxas){
     char opcao;
     float valor;
@@ -780,13 +782,13 @@ int main(void){
                         puts("Valor atual da moeda\n");
 
                         ler_cota(&moedas);
-                        printf("bitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
+                        printf("bitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n", moedas.bitcoin, moedas.ethereum, moedas.ripple); /// ### ALTERAR PARA SER PROGRAMAVEL
 
                         alterar_valor_moeda(&moedas);
                         ler_cota(&moedas); // salvando valor alterado
 
                         puts("\nCotacao atualizada!");
-                        printf("\nbitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n\n", moedas.bitcoin, moedas.ethereum, moedas.ripple);
+                        printf("\nbitcoin: %.2f\nethereum: %.2f\nripple: %.2f\n\n", moedas.bitcoin, moedas.ethereum, moedas.ripple); /// ### ALTERAR PARA SER PROGRAMAVEL
                         
                         do{
                             puts("1 - Voltar");
