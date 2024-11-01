@@ -9,25 +9,23 @@ typedef struct User{
     char cpf[80];
     char nome[50];
     char senha[80];
-    float saldo_reais;
-    float saldo_btc;
-    float saldo_eth;
-    float saldo_xrp;
+    float** saldos;
     char extrato[LIMITE_EXTRATOS][200];
     int qntd_extrato;
+    int qtd_coins;
 } User;
 
 // aqui estão as criptomoedas
 typedef struct BolsaCripto{
-    float bitcoin, ethereum, ripple,real;
+    int idcoin;
+    float valor;
+    char sigla[5];
 } BolsaCripto;
 
 // aqui fica as taxas
 typedef struct TxCripto{
-    float buy_bitcoin, sell_bitcoin;
-    float buy_ethereum, sell_ethereum;
-    float buy_ripple, sell_ripple;
-    float real;
+    int idcoin;
+    float taxa;
 } TxCripto;
 //pegando se o tipo de acao do usuario foi venda ou compra
 enum tipo_acao {VENDA, COMPRA};
