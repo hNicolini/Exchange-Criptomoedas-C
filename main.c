@@ -9,10 +9,11 @@ typedef struct User{
     char cpf[80];
     char nome[50];
     char senha[80];
-    float** saldos;
     char extrato[LIMITE_EXTRATOS][200];
     int qntd_extrato;
     int qtd_coins;
+    float saldos[qtd_coins][1];
+
 } User;
 
 // aqui estão as criptomoedas
@@ -806,5 +807,5 @@ int main(void){
             }while(resposta != '8');
         }
     }
-    return 0;
+    return 0; 
 }
