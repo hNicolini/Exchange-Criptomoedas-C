@@ -17,13 +17,7 @@ typedef struct BolsaCripto{
     
 } BolsaCripto;
 
-// aqui fica as taxas
-// typedef struct TxCripto{
-//     int idcoin;
-//     float txbuy;
-//     float txsell;
-// } TxCripto;
-
+// saldo de cada moeda do usuario
 typedef struct Saldo{
     int idcoin;
     float saldo;
@@ -37,6 +31,7 @@ typedef struct User{
     char extrato[LIMITE_EXTRATOS][200];
     int qntd_extrato;
     int qtd_coins;
+    float reais;
     Saldo* saldos;
 
 } User;

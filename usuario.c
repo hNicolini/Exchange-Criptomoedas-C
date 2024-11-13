@@ -5,17 +5,20 @@
 #define LIMITE_USUARIOS 10
 #define LIMITE_EXTRATOS 100
 
+// aqui estão as criptomoedas
 typedef struct BolsaCripto{
     int idcoin;
-    float cota;
-    char* sigla;
-    char* nome;
+    char sigla[4];
+    char nome[255];
+    float cota, txbuy, txsell;
+    
 } BolsaCripto;
 
-typedef struct SaldoUser{
+// saldo de cada moeda do usuario
+typedef struct Saldo{
     int idcoin;
     float saldo;
-}SaldoUser;
+}Saldo;
 
 typedef struct User{
 
@@ -25,15 +28,12 @@ typedef struct User{
     char extrato[LIMITE_EXTRATOS][200];
     int qntd_extrato;
     int qtd_coins;
-    SaldoUser* saldos;
+    float reais;
+    Saldo* saldos;
 
 } User;
 
-// aqui fica as taxas
-typedef struct TxCripto{
-    int idcoin;
-    float taxa;
-} TxCripto;
+
 
 //pegando se o tipo de acao do usuario foi venda ou compra
 enum tipo_acao {VENDA, COMPRA};
