@@ -4,6 +4,19 @@
 #include <time.h>
 #define LIMITE_USUARIOS 10
 #define LIMITE_EXTRATOS 100
+
+typedef struct BolsaCripto{
+    int idcoin;
+    float cota;
+    char* sigla;
+    char* nome;
+} BolsaCripto;
+
+typedef struct SaldoUser{
+    int idcoin;
+    float saldo;
+}SaldoUser;
+
 typedef struct User{
 
     char cpf[80];
@@ -12,25 +25,20 @@ typedef struct User{
     char extrato[LIMITE_EXTRATOS][200];
     int qntd_extrato;
     int qtd_coins;
-    float saldos[qtd_coins][1];
+    SaldoUser* saldos;
 
 } User;
-
-// aqui estão as criptomoedas
-typedef struct BolsaCripto{
-    int idcoin;
-    float valor;
-    char sigla[5];
-} BolsaCripto;
 
 // aqui fica as taxas
 typedef struct TxCripto{
     int idcoin;
     float taxa;
 } TxCripto;
+
 //pegando se o tipo de acao do usuario foi venda ou compra
 enum tipo_acao {VENDA, COMPRA};
 enum indice_moeda{BTC=1,ETH=2,XRP=3,REAL=4};
+
 // limpa o buffer de entrada
 void limpaBuffer() {
     int c;
@@ -55,7 +63,7 @@ long seekUser(User* loginUsuario, FILE* arquivo){
 }
 
 // verificando se é possivel cadastrar novos usuarios
-int usuer_limit_over(char* nome_arquivo){
+int user_limit_over(char* nome_arquivo){
     FILE* arquivo = fopen(nome_arquivo, "rb");
     if(arquivo == NULL){
         return 0; // se o arquivo não existir é possivel cadastrar usuarios
@@ -99,6 +107,7 @@ int login(User *loginUsuario) {
     }
     
 }
+
 // salva  o usuario no arquivo
 void save_user(User* usuario){
     FILE* arquivo = fopen("Usuario", "r+b");
@@ -117,6 +126,7 @@ void save_user(User* usuario){
     }
     fclose(arquivo);
 }
+
 // salva acao pra colocar no extrato ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_moeda, BolsaCripto* criptomoedas, TxCripto* taxas){
     
@@ -277,6 +287,7 @@ int cadastro(void) {
 
 
     novousuario.saldos = NULL;
+    novousuario.qtd_coins = 0;
     
 
     FILE* arquivo = fopen("Usuario", "ab");
@@ -300,7 +311,7 @@ int usuario(void) {
     if (resposta == 1) {
         return 1;  
     } else if (resposta == 2) {
-        int users_excedido = usuer_limit_over("Usuario");
+        int users_excedido = user_limit_over("Usuario");
         if(users_excedido){
             printf("Numero maximo de usuarios atingidos!");
             exit(0);
