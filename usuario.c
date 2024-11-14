@@ -62,6 +62,53 @@ long seekUser(User* loginUsuario, FILE* arquivo){
     return pos;
 }
 
+void salvar_usuario(User* usuario) {
+    FILE* arquivo = fopen("Usuario", "ab");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    
+    fwrite(usuario, sizeof(User) - sizeof(Saldo*), 1, arquivo);
+
+    fwrite(usuario->saldos, sizeof(Saldo), usuario->qtd_coins, arquivo);
+
+    fclose(arquivo);
+}
+void ler_usuario(User* usuario) {
+    FILE* arquivo = fopen("Usuario", "rb");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return NULL;
+    }
+
+    usuario = malloc(sizeof(User));
+    if (usuario == NULL) {
+        perror("Erro ao alocar memória para usuário");
+        fclose(arquivo);
+        return NULL;
+    }
+
+    // Lê os dados principais de `User` (exceto `saldos`)
+    fread(usuario, sizeof(User) - sizeof(Saldo*), 1, arquivo);
+
+    // Aloca memória para o array `saldos` com base em `qtd_coins`
+    usuario->saldos = malloc(usuario->qtd_coins * sizeof(Saldo));
+    if (usuario->saldos == NULL) {
+        perror("Erro ao alocar memória para saldos");
+        free(usuario);
+        fclose(arquivo);
+        return exit(1);
+    }
+
+    // Lê o conteúdo do array dinâmico `saldos`
+    fread(usuario->saldos, sizeof(Saldo), usuario->qtd_coins, arquivo);
+
+    fclose(arquivo);
+
+}
+
 // verificando se é possivel cadastrar novos usuarios
 int user_limit_over(char* nome_arquivo){
     FILE* arquivo = fopen(nome_arquivo, "rb");
@@ -296,7 +343,7 @@ int cadastro(void) {
         return 0;
     }
 
-    fwrite(&novousuario, sizeof(User), 1, arquivo);
+    salvar_usuario(&novousuario);
     fclose(arquivo);
     return 1;
 }
