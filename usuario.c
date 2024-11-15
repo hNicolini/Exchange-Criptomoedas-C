@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#define LIMITE_USUARIOS 10
 #define LIMITE_EXTRATOS 100
 
 // aqui estão as criptomoedas
@@ -28,7 +29,6 @@ typedef struct User{
     int qntd_extrato;
     int qtd_coins;
     float reais;
-    Saldo* saldos;
 
 } User;
 
@@ -49,39 +49,16 @@ void limpaBuffer() {
 long seekUser(User* loginUsuario, FILE* arquivo){
     User usuario;
     long pos = -1;
-    while(fread(usuario,sizeof(User) - sizeof(Saldo*),1,arquivo)) {
+    while(fread(usuario,sizeof(User),1,arquivo)) {
       
         if (strcmp(usuario.cpf, loginUsuario->cpf) == 0 && strcmp(usuario.senha, loginUsuario->senha) == 0) {
            
-            pos =  ftell(arquivo) - (sizeof(User) - sizeof(Saldo*));
+            pos =  ftell(arquivo) - (sizeof(User));
 
         }
-       fseek(arquivo,sizeof(Saldo) * user->qtd_coins, SEEK_CUR);
     }
     return pos;
 
-    FILE* rfile = fopen("usuarios", "rb");
-    if(rfile == NULL){
-        puts("No User registered");
-        exit(1);
-    }
-  
-    while(fread(user,sizeof(User) - sizeof(Saldo*),1,rfile)){
-        
-        if(!strcmp(cpf,user->cpf) && !strcmp(senha, user->senha)){ // usuario encontrado !
-            
-            puts("User There is");
-            user->saldos = malloc(user->qtd_coins * sizeof(Saldo)); // alocando memoria referente a qtd de moedas do usuario
-            
-            fread(user->saldos,sizeof(Saldo),user->qtd_coins,rfile); // coletando todas as moedas + saldos do usuario
-            
-            fclose(rfile); // fechando arquivo apos coletar os dados
-        
-            return;
-        }
-        /// as credenciais nao batam de primeira
-        fseek(rfile,sizeof(Saldo) * user->qtd_coins, SEEK_CUR); // pular todo o array de saldos do respectivo usuario
-    }
 }
 
 void writeUser(User* user){
@@ -90,16 +67,8 @@ void writeUser(User* user){
         puts("First User!");
     }
 
-    fwrite(user,sizeof(User) - sizeof(Saldo*),1,wfile); // escrevendo credenciais + extrato do usuario + saldo de reais
-     // Gravação do conteúdo do array dinâmico `saldos`
-    if (user->saldos != NULL && user->qtd_coins > 0) {
-        fwrite(user->saldos, sizeof(Saldo), user->qtd_coins, wfile);
-        puts("Saldo do usuário foi salvo");
-    } else {
-        puts("Nenhum saldo para salvar");
-    }
-    
-    free(user->saldos);
+    fwrite(user,sizeof(User),1,wfile); // escrevendo credenciais + extrato do usuario + saldo de reais
+
     fclose(wfile);
 }
 
@@ -115,7 +84,6 @@ void findUser(User* user, const char* cpf, const char* senha){
         if(!strcmp(cpf,user->cpf) && !strcmp(senha, user->senha)){ // usuario encontrado !
             
             puts("User There is");
-            user->saldos = malloc(user->qtd_coins * sizeof(Saldo)); // alocando memoria referente a qtd de moedas do usuario
             
             fread(user->saldos,sizeof(Saldo),user->qtd_coins,rfile); // coletando todas as moedas + saldos do usuario
             
