@@ -30,18 +30,27 @@ void writeUser(User* user){
     if(wfile == NULL){
         puts("First User!");
     }
+    printf("Gravando: CPF: %s, Nome: %s, Senha: %s, qntd_extrato: %d, qtd_coins: %d, reais: %.2f\n",
+           user->cpf, user->nome, user->senha, user->qntd_extrato, user->qtd_coins, user->reais);
+
     puts("Escrevendooo");
     fwrite(user,sizeof(User) - sizeof(Saldo*),1,wfile); // escrevendo credenciais + extrato do usuario + saldo de reais
     puts("Usuario foi salvo sem o saldo");
-    fwrite(&user->saldos,sizeof(Saldo),user->qtd_coins,wfile); // escrevendo todo o saldo das moedas do usuario
-    puts("Saldo do usuario foi salvo");
+     // Gravação do conteúdo do array dinâmico `saldos`
+    if (user->saldos != NULL && user->qtd_coins > 0) {
+        fwrite(user->saldos, sizeof(Saldo), user->qtd_coins, wfile);
+        puts("Saldo do usuário foi salvo");
+    } else {
+        puts("Nenhum saldo para salvar");
+    }
+    
     free(user->saldos);
     fclose(wfile);
 }
 
 void findUser(User* user, const char* cpf, const char* senha){
     FILE* rfile = fopen("usuarios", "rb");
-    if(rfile = NULL){
+    if(rfile == NULL){
         puts("No User registered");
         exit(1);
     }
@@ -58,7 +67,6 @@ void findUser(User* user, const char* cpf, const char* senha){
             fread(user->saldos,sizeof(Saldo),user->qtd_coins,rfile); // coletando todas as moedas + saldos do usuario
             
             fclose(rfile); // fechando arquivo apos coletar os dados
-            free(user->saldos);
         
             return;
         }
@@ -72,8 +80,10 @@ void findUser(User* user, const char* cpf, const char* senha){
 int main(void){
     User usuario;
     // strcpy(usuario.cpf,"0000000000");
+    // strcpy(usuario.nome,"Kaio");
     // strcpy(usuario.senha, "123");
-    // // usuario.qntd_extrato = 0;
+    // // memset(usuario.extrato, 0, sizeof(usuario.extrato));
+    // usuario.qntd_extrato = 2;
     // usuario.qtd_coins = 1;
     // usuario.reais = 23.9;
     // usuario.saldos = malloc(usuario.qtd_coins * sizeof(Saldo));
@@ -88,6 +98,7 @@ int main(void){
 
     findUser(&usuario, "0000000000", "123");
 
-    
+    printf("Nome: %s saldo[0]: id[%d] qtnd[%.4f]", usuario.nome, usuario.saldos[0].idcoin, usuario.saldos[0].qtd);
+    free(usuario.saldos);
 
 }
