@@ -16,12 +16,12 @@ typedef struct BolsaCripto{
 
 // saldo de cada moeda do usuario
 typedef struct Saldo{
-    int idcoin;
+    char cpf[80];
+    int idCoin;
     float saldo;
 }Saldo;
 
 typedef struct User{
-
     char cpf[80];
     char nome[50];
     char senha[80];
@@ -36,7 +36,6 @@ typedef struct User{
 
 //pegando se o tipo de acao do usuario foi venda ou compra
 enum tipo_acao {VENDA, COMPRA};
-enum indice_moeda{BTC=1,ETH=2,XRP=3,REAL=4};
 
 // limpa o buffer de entrada
 void limpaBuffer() {
@@ -79,20 +78,16 @@ void findUser(User* user, const char* cpf, const char* senha){
         exit(1);
     }
   
-    while(fread(user,sizeof(User) - sizeof(Saldo*),1,rfile)){
+    while(fread(user,sizeof(User),1,rfile)){
         
         if(!strcmp(cpf,user->cpf) && !strcmp(senha, user->senha)){ // usuario encontrado !
             
             puts("User There is");
-            
-            fread(user->saldos,sizeof(Saldo),user->qtd_coins,rfile); // coletando todas as moedas + saldos do usuario
-            
             fclose(rfile); // fechando arquivo apos coletar os dados
         
             return;
         }
-        /// as credenciais nao batam de primeira
-        fseek(rfile,sizeof(Saldo) * user->qtd_coins, SEEK_CUR); // pular todo o array de saldos do respectivo usuario
+
     }
     puts("User There isn't");
     fclose(rfile);
@@ -163,8 +158,8 @@ void save_user(User* usuario){
     fclose(arquivo);
 }
 
-// salva acao pra colocar no extrato ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
-void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_moeda, BolsaCripto* criptomoedas, TxCripto* taxas){
+// salva acao pra colocar no extrato ::::: ARRUMEI? ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
+void save_acao(int tipo,User* loginUsuario,float valor,BolsaCripto* criptomoedas){
     
     time_t seconds;
     
@@ -183,46 +178,24 @@ void save_acao(int tipo,User* loginUsuario,float valor, char cripto[4],int cota_
     }
     switch(realizou){
         case VENDA:
+
             signal = '-';
-             switch(cota_moeda){
-                case BTC: // BTC
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->bitcoin,taxas->sell_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-                case ETH: // ETH
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ethereum,taxas->sell_ethereum,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-                case XRP: // XRP
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ripple,taxas->sell_ripple,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-                case REAL: // REAL
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->real,taxas->real,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-             }
+            sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f",data_hora,signal,valor,criptomoedas->nome,criptomoedas->cota,criptomoedas->txsell); //  formatando string para mandar no extrato
             break;
+
         case COMPRA:
+
             signal = '+';
-            switch(cota_moeda){
-                case BTC: // BTC
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->bitcoin,taxas->buy_bitcoin,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-                case ETH: // ETH
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ethereum,taxas->buy_ethereum,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-                case XRP: // XRP
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->ripple,taxas->buy_ripple,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-                case REAL: // REAL
-                    sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f REAL: %.2f BTC: %.2f ETH: %.2f XRP: %.2f\n",data_hora,signal,valor,cripto,criptomoedas->real,taxas->real,loginUsuario->saldo_reais,loginUsuario->saldo_btc,loginUsuario->saldo_eth,loginUsuario->saldo_xrp); //  formatando string para mandar no extrato
-                    break;
-            }
+            sprintf(loginUsuario->extrato[loginUsuario->qntd_extrato], "%s %c %.2f  %s  CT: %.3f TX: %.2f",data_hora,signal,valor,criptomoedas->nome,criptomoedas->cota,criptomoedas->txbuy); //  formatando string para mandar no extrato
             break;
+
     }
     loginUsuario->qntd_extrato++;
     save_user(loginUsuario);
 }
 
-//Função de deposito de Dinheiro ### PRECISA SER ALTERADA PARA FICAR FICAR PROGRAMAVEL
-int AdicionarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
+//Função de deposito de Dinheiro :::::: ARRUMEI? ### PRECISA SER ALTERADA PARA FICAR FICAR PROGRAMAVEL
+int AdicionarSaldo(User *loginUsuario,BolsaCripto* moedas) {
     float valor;
     printf("\t\tDepositar Real\n");
 
@@ -231,16 +204,16 @@ int AdicionarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
     limpaBuffer();
     if(valor > 0){
 
-    loginUsuario->saldo_reais += valor;  
+    loginUsuario->reais += valor;  
     }
     else{
         puts("Digite um valor maior que 0");
     }
     
-    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
+    printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->reais);
    
     save_user(loginUsuario);
-    save_acao(COMPRA,loginUsuario,valor,"REAL",REAL,moedas,taxas);
+    save_acao(COMPRA,loginUsuario,valor,moedas);
 
     return 0;
 }
@@ -257,8 +230,8 @@ int check_password(char* user_senha){
     return 0;
 }
 
-//Função de saque de dinheiro ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
-int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
+//Função de saque de dinheiro :::::: ARRUMEI? ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
+int SacarSaldo(User *loginUsuario, BolsaCripto* moedas) {
     float valor;
     printf("\t\tSacar Real\n");
 
@@ -271,10 +244,10 @@ int SacarSaldo(User *loginUsuario, BolsaCripto* moedas, TxCripto* taxas) {
         }
         else{
             loginUsuario->saldo_reais -= valor;
-            printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->saldo_reais);
+            printf("Saldo atualizado com sucesso! Saldo atual: R$ %.2f\n",loginUsuario->reais);
             
             save_user(loginUsuario);
-            save_acao(VENDA,loginUsuario,valor,"REAL",REAL,moedas, taxas);
+            save_acao(VENDA,loginUsuario,valor,moedas);
 
         }
     }
@@ -305,7 +278,7 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
     return 0;  
 }
 
-//Função de Cadastro ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
+//Função de Cadastro :::::: ARRUMEI?  ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
 int cadastro(void) {
     User novousuario;
     printf("\t\tCadastro\n");
@@ -321,12 +294,12 @@ int cadastro(void) {
     printf("Digite sua senha: ");
     fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
 
-
-    novousuario.saldos = NULL;
+    novousuario.reais = 0;
+    novousuario.qntd_extrato = 0;
     novousuario.qtd_coins = 0;
     
 
-    FILE* arquivo = fopen("Usuario", "ab");
+    FILE* arquivo = fopen("usuario", "ab");
     if (arquivo == NULL) {
         printf("Erro ao abrir o arquivo de usuários.\n");
         return 0;
@@ -362,40 +335,45 @@ int usuario(void) {
     }
 }
 
-void salvar_cota(BolsaCripto* valores){
-    FILE* cotas = fopen("cotas", "wb");
+// ##### ALTERAR :::: ALTEREI CERTO?
+void salvar_cota(BolsaCripto* moedas, const size_t qtd_moedas){
+    FILE* arquivo = fopen("cotas", "wb");
     // Salvando cotas em arquivo binario
-    if(cotas == NULL){
+    if(arquivo == NULL){
         printf("Não foi possivel abrir o arquivo para salvar cotas");
         exit(1);
     }
-    fwrite(valores,sizeof(BolsaCripto),1, cotas);
-    fclose(cotas);
+    
+    
+
+    fwrite(moedas,sizeof(BolsaCripto),qtd_moedas, arquivo);
+    fclose(arquivo);
 }
 
-// ### ler_cota PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
-void ler_cota(BolsaCripto* valores){
-    FILE* cotas = fopen("cotas", "rb");
-    if(cotas == NULL){
+// ### ler_cota :::: ARRUMEI? PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
+size_t ler_moedas(BolsaCripto* moedas){
+    FILE* readFile = fopen("moedas", "rb");
+    if(readFile == NULL){
         printf("Não foi possivel abrir o arquivo para ler\n");
-        valores->bitcoin = 357791.34;
-        valores->ethereum = 14355.80;
-        valores->ripple = 3.50;
-        valores->real = 0.0;
         return;
     }
-    if (fread(valores, sizeof(BolsaCripto), 1, cotas) != 1) {
+
+    fseek(readFile,0,SEEK_END);
+    size_t pos = ftell(readFile);
+    size_t qtd_moedas = pos/sizeof(BolsaCripto);
+    moedas = malloc(qtd_moedas*sizeof(BolsaCripto));
+    fseek(readFile,0,SEEK_SET);
+
+    if (fread(moedas, sizeof(BolsaCripto), qtd_moedas, readFile) != 1) {
         printf("Erro ao ler as cotas.\n");
-        valores->bitcoin = 357791.34;
-        valores->ethereum = 14355.80;
-        valores->ripple = 3.50;
-        valores->real = 0.0;
     }
-    fclose(cotas);
+    fclose(readFile);
+
+    return qtd_moedas;
 }
 
-// alterar_valor_moeda ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
-void alterar_valor_moeda(BolsaCripto* valores){
+// alterar_valor_moeda ::::: ARRUMEI? ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
+void alterar_valor_moeda(BolsaCripto* moedas, const size_t qtd_moedas){
     // gerando o numero aleatorio entre -5% e 5%
     srand(time(NULL));
     float numero_gerado =((rand() % 5) + 1.0)/100.0;
@@ -404,51 +382,52 @@ void alterar_valor_moeda(BolsaCripto* valores){
         numero_gerado*=-1;
     }
     printf("\nAumentou/Diminuiu %.2f%c \n",numero_gerado*100.0,37);
-    //  calculando os bytes para percorrer os valores 1 por 1 (4 em 4 bytes) na struct
-    valores->bitcoin += valores->bitcoin * numero_gerado;
-    valores->ethereum += valores->ethereum * numero_gerado;
-    valores->ripple += valores->ripple * numero_gerado;
     
+    for(const int i = 0; i <= qtd_moedas; ++i){
+        moedas[i].cota += numero_gerado;
+    }
 
-   salvar_cota(valores);
+   salvar_cota(moedas, qtd_moedas);
 }
 
-void salvar_taxa(TxCripto* taxas){
-    FILE* arquivo = fopen("taxas", "wb");
+/// ### ESSAS DUAS FUNCOES NAO PRECISAM EXISITR (TEORIA)
 
-    if(arquivo == NULL){
-        printf("Não foi possivel abrir o arquivo de taxas");
-        exit(1);
-    }
-    fwrite(taxas, sizeof(TxCripto),1,arquivo);
-    fclose(arquivo);
-}
-void ler_taxa(TxCripto* taxas){
-    FILE* arquivo = fopen("taxas", "rb");
+// void salvar_taxa(TxCripto* taxas){
+//     FILE* arquivo = fopen("taxas", "wb");
 
-    if(arquivo == NULL){
-        printf("Não foi possivel ler o arquivo de taxas\n");
-        taxas->buy_bitcoin = 0.02;
-        taxas->sell_bitcoin = 0.03;
-        taxas->buy_ethereum = 0.01;
-        taxas->sell_ethereum = 0.02;
-        taxas->buy_ripple = 0.01;
-        taxas->sell_ripple = 0.01;
-        taxas->real = 0.0;
-        return;
-    }
-    if (fread(taxas, sizeof(TxCripto), 1, arquivo) != 1){
-        printf("Erro ao ler as taxas.\n");
-        taxas->buy_bitcoin = 0.02;
-        taxas->sell_bitcoin = 0.03;
-        taxas->buy_ethereum = 0.01;
-        taxas->sell_ethereum = 0.02;
-        taxas->buy_ripple = 0.01;
-        taxas->sell_ripple = 0.01;
-        taxas->real = 0.0;
-    }
-    fclose(arquivo);
-}
+//     if(arquivo == NULL){
+//         printf("Não foi possivel abrir o arquivo de taxas");
+//         exit(1);
+//     }
+//     fwrite(taxas, sizeof(TxCripto),1,arquivo);
+//     fclose(arquivo);
+// }
+// void ler_taxa(TxCripto* taxas){
+//     FILE* arquivo = fopen("taxas", "rb");
+
+//     if(arquivo == NULL){
+//         printf("Não foi possivel ler o arquivo de taxas\n");
+//         taxas->buy_bitcoin = 0.02;
+//         taxas->sell_bitcoin = 0.03;
+//         taxas->buy_ethereum = 0.01;
+//         taxas->sell_ethereum = 0.02;
+//         taxas->buy_ripple = 0.01;
+//         taxas->sell_ripple = 0.01;
+//         taxas->real = 0.0;
+//         return;
+//     }
+//     if (fread(taxas, sizeof(TxCripto), 1, arquivo) != 1){
+//         printf("Erro ao ler as taxas.\n");
+//         taxas->buy_bitcoin = 0.02;
+//         taxas->sell_bitcoin = 0.03;
+//         taxas->buy_ethereum = 0.01;
+//         taxas->sell_ethereum = 0.02;
+//         taxas->buy_ripple = 0.01;
+//         taxas->sell_ripple = 0.01;
+//         taxas->real = 0.0;
+//     }
+//     fclose(arquivo);
+// }
 
 // tela de menu pós login
 char menu(void){
@@ -479,14 +458,27 @@ char menu(void){
     return opcao;
 }
 
-// consultar_saldo ## PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
-char consultar_saldo(User* usuario){
+// consultar_saldo :::::: ARRUMEI? ## PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
+char consultar_saldos(User* usuario, BolsaCripto* moedas, size_t qtd_moedas){
     char opcao;
+    Saldo* saldos;
+
+    FILE* readSaldos = ("saldos", "rb");
+    if(readSaldos == NULL){
+        puts("Nenhum Saldo Existente no sistema");
+        exit(1);
+    }
     puts("\t\tSaldo na Carteira\n\n");
-    printf("Reais: R$%.2f\n",usuario->saldo_reais);
-    printf("Bitcoin: %.4f\n",usuario->saldo_btc);
-    printf("Ethereum: %.4f\n",usuario->saldo_eth);
-    printf("Ripple: %.4f\n",usuario->saldo_xrp);
+    while(fread(saldos,sizeof(Saldo),1,readSaldos)){
+        if(!strcmp(saldos->cpf, usuario->cpf)){
+
+            for(const int i = 0; i <= qtd_moedas; ++i){
+                if(saldos->idcoin == moedas[i].idcoin ){
+                    printf("%s: R$%.2f\n",moedas[i].nome, saldos->saldo);
+                }
+            }
+        }
+    }
     
     do{
         puts("1 - Voltar");
@@ -516,7 +508,7 @@ char consultar_extrato(User* usuario){
 
     return opcao;
 }
-
+/// ##### VERIFICAR SE PRECISA ALTERAR
 int check_buy_sell(int tipo, float valor, float  cota, float possui_reais,float possui_moeda,float taxa){
 
     switch(tipo){
@@ -538,7 +530,7 @@ int check_buy_sell(int tipo, float valor, float  cota, float possui_reais,float 
 }
 
 // comprar_cripto ### PRECISA SER ALTERADA PARA FICAR PROGRAMAVEL
-void comprar_cripto(User* usuario, BolsaCripto* cotas,  TxCripto* taxas){
+void comprar_cripto(User* usuario, BolsaCripto* cotas){
     char opcao;
     float valor;
     char confirm;
