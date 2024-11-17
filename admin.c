@@ -448,6 +448,12 @@ void update_saldos(int idcoin, char *cpf) {
   // Obtendo numero total de saldos
   fseek(rSaldos, 0, SEEK_END);
   size_t pos = ftell(rSaldos);
+  if (pos == 0) {
+        // Sem registro de saldo
+        puts("Nenhum saldo para atualizar.");
+        fclose(rSaldos);
+        return;
+    }
   size_t qtd_saldos = pos / sizeof(Saldo);
 
   Saldo *all_saldos = malloc(qtd_saldos * sizeof(Saldo));
@@ -521,7 +527,10 @@ void remover_moeda(BolsaCripto *moedas, unsigned int qtd_moedas) {
     puts("ID invalido");
   } else {
     BolsaCripto *filteredCoins = malloc((qtd_moedas - 1) * sizeof(BolsaCripto));
-
+    if(filteredCoins == NULL){
+        puts("Erro ao alocar moedas");
+        return;
+    }
     FILE *wCriptos = fopen("moedas", "wb");
     if (wCriptos == NULL) {
       puts("Nenhuma cripto cadastrada");
@@ -756,11 +765,11 @@ int main(void) {
         break;
       case 3:
         adicionar_moeda();
-        ler_moedas(&qtd_moedas);
+        moeda = ler_moedas(&qtd_moedas);
         break;
       case 4:
         remover_moeda(moeda, qtd_moedas);
-        ler_moedas(&qtd_moedas);
+        moeda = ler_moedas(&qtd_moedas);
         break;
       case 5:
         consultar_saldos(moeda, qtd_moedas);
