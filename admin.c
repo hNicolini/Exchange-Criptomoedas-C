@@ -36,6 +36,12 @@ typedef struct User{
 
 } User;
 
+char* clear_newLine(char* string){
+
+    string[strcspn(string, "\n")] = 0;
+
+    return string;
+}
 
 void limpaBuffer() {
     int c;
@@ -117,6 +123,7 @@ void adicionar_moeda(BolsaCripto* moeda){
         while(true){
             printf("Digite o nome da moeda: ");
             fgets(moeda->nome,sizeof(moeda->nome),stdin);
+            strcpy(livros->titulo, clear_newLine(livros->titulo));;
             // limpaBuffer();
 
             if(!coinExists(moeda->nome, "")){
@@ -127,6 +134,7 @@ void adicionar_moeda(BolsaCripto* moeda){
         while(true){
             printf("Digite a sigla da moeda: ");
             fgets(moeda->sigla,sizeof(moeda->sigla),stdin);
+            strcpy(moeda->sigla, clear_newLine(moeda->sigla));
             // limpaBuffer();
 
             if(!coinExists("", moeda->sigla)){
@@ -143,7 +151,7 @@ void adicionar_moeda(BolsaCripto* moeda){
         limpaBuffer();
 
         printf("Digite a taxa de venda: ");
-        scanf("%2f", &moeda->txsell);
+        scanf("%f", &moeda->txsell);
         limpaBuffer();
 
         fwrite(moeda,sizeof(BolsaCripto),1,arquivo);
