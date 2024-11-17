@@ -43,6 +43,31 @@ char* clear_newLine(char* string){
     return string;
 }
 
+char dados_user(User* usuario, BolsaCripto* moedas, unsigned int qtd_moedas){
+    Saldo saldos;
+    puts("\t\tDados do Usuario\n\n");
+    printf("CPF: %s\n", usuario->cpf);
+    printf("Nome: %s\n", usuario->nome);
+    printf("Quantidade Extratos: %d\n", usuario->qntd_extrato);
+    printf("REAL: %.2f\n", usuario->reais);
+    
+    FILE* readSaldos = fopen("saldos", "rb");
+    if(readSaldos == NULL){
+        puts("Nenhum Saldo de Cripto Existente no sistema");
+    }
+    
+    while(fread(&saldos,sizeof(Saldo),1,readSaldos)){
+        if(!strcmp(saldos.cpf,  usuario->cpf)){
+            for(unsigned int i = 0; i < qtd_moedas; ++i){
+                if(saldos.idcoin == moedas[i].idcoin ){
+                    printf("%s: R$%.2f\n",moedas[i].nome, saldos.saldo);
+                }
+            }
+        }
+    }
+
+}
+
 void limpaBuffer() {
     int c;
     // Lê e descarta todos os caracteres até o '\n' ou EOF
@@ -441,9 +466,10 @@ void alterar_valor_moeda(BolsaCripto* moedas, const unsigned int qtd_moedas){
    salvar_cota(moedas, qtd_moedas);
 }
 
-void RemoverUsuarios(){
+void RemoverUsuarios(BolsaCripto* moedas, unsigned int qtd_moedas){
     char cpf[80];
     int validCpf = 0;
+    int confirm;
 
     User usuarios;
 
@@ -460,64 +486,103 @@ void RemoverUsuarios(){
     }
     while(fread(&usuarios,sizeof(User),1,coletarusers)){
         if(strcmp(cpf, usuarios.cpf) == 0){
-            puts("Achou o usuario");
             validCpf = 1;
-            break;
+            dados_user(&usuarios,moedas, qtd_moedas);
+            puts("[1] Excluir\n[2] Cancelar");
+            printf("Opcao: ");
+            scanf("%d", &confirm);
+          
         }
     }
     if(!validCpf){
-        puts("CPF invalido");
-        fclose(coletarusers);
-        return;
-    }
-
-    // Obtendo numero total de usuarios
-    fseek(coletarusers,0, SEEK_END);
-    size_t pos = ftell(coletarusers);
-    size_t qtd_usuarios = pos/sizeof(User);
-
-
-    User* all_users = malloc(qtd_usuarios * sizeof(User));
-    fseek(coletarusers,0,SEEK_SET);
-    fread(all_users, sizeof(User), qtd_usuarios, coletarusers);
-    if(all_users == NULL){
-        puts("Erro na alocacao de memoria para all_users");
-        return;
-    }
-    fclose(coletarusers);
-
-    User* filteredUsers = malloc((qtd_usuarios)*sizeof(User));
-    if(filteredUsers == NULL){
-        puts("Erro na alocacao de memoria para filteredUsers");
-        free(all_users);
-        return;
-    }
-    int cont = 0;
-
-    // Pegando os usuarios que nao foram removidos
-    for(unsigned int i = 0; i < qtd_usuarios; i++){
-        if(strcmp(all_users[i].cpf,cpf) != 0){
-            filteredUsers[cont] = all_users[i];
-            cont++;
+            puts("CPF invalido");
+            fclose(coletarusers);
+            return;
         }
-    }
-    free(all_users);
+    if(confirm == 1){
+        
 
-    // Escrevendo os usuarios que nao foram removidos no arquivo
-    FILE* rewriteUsers = fopen("usuarios", "wb");
-    if(rewriteUsers == NULL){
-        puts("Impossivel reescrever usuarios");
+        // Obtendo numero total de usuarios
+        fseek(coletarusers,0, SEEK_END);
+        size_t pos = ftell(coletarusers);
+        size_t qtd_usuarios = pos/sizeof(User);
+
+
+        User* all_users = malloc(qtd_usuarios * sizeof(User));
+        fseek(coletarusers,0,SEEK_SET);
+        fread(all_users, sizeof(User), qtd_usuarios, coletarusers);
+        if(all_users == NULL){
+            puts("Erro na alocacao de memoria para all_users");
+            return;
+        }
+        fclose(coletarusers);
+
+        User* filteredUsers = malloc((qtd_usuarios)*sizeof(User));
+        if(filteredUsers == NULL){
+            puts("Erro na alocacao de memoria para filteredUsers");
+            free(all_users);
+            return;
+        }
+        int cont = 0;
+
+        // Pegando os usuarios que nao foram removidos
+        for(unsigned int i = 0; i < qtd_usuarios; i++){
+            if(strcmp(all_users[i].cpf,cpf) != 0){
+                filteredUsers[cont] = all_users[i];
+                cont++;
+            }
+        }
+        free(all_users);
+
+        // Escrevendo os usuarios que nao foram removidos no arquivo
+        FILE* rewriteUsers = fopen("usuarios", "wb");
+        if(rewriteUsers == NULL){
+            puts("Impossivel reescrever usuarios");
+            free(filteredUsers);
+            return;
+        }
+        
+        fwrite(filteredUsers,sizeof(User),cont,rewriteUsers);
+        
         free(filteredUsers);
-        return;
+        update_saldos(-1,cpf);
+        fclose(rewriteUsers);
+        
+        printf("Usuario com CPF [%s] foi removido.\n",cpf);
     }
-    
-    fwrite(filteredUsers,sizeof(User),cont,rewriteUsers);
-    
-    free(filteredUsers);
-    update_saldos(-1,cpf);
-    fclose(rewriteUsers);
-    
-    printf("Usuario com CPF [%s] foi removido.\n",cpf);
+    return;
+}
+
+char consultar_extrato(User* usuario, BolsaCripto* moedas, Saldo* saldos, unsigned int qtd_moedas){
+    char opcao;
+    int limite = (usuario->qntd_extrato);
+    FILE* readSaldos = fopen("saldos", "rb");
+    printf("\t\tExtrato da conta de %s\n",usuario->nome);
+    for(int i = 0; i < limite; i++ ){
+        printf("%s",usuario->extrato[i]);
+        while(fread(saldos,sizeof(Saldo),1,readSaldos)){
+            if(!strcmp(saldos->cpf,  usuario->cpf)){
+        
+                for(unsigned int i = 0; i < qtd_moedas; ++i){
+                    if(saldos->idCoin == moedas[i].idcoin ){
+                    
+                        printf(" %s: %.4f",moedas[i].sigla, saldos->saldo/moedas[i].cota);
+                    }
+                }
+            }
+        }
+        fseek(readSaldos,0,SEEK_SET);
+        printf("\n");
+    }
+
+   do{
+        puts("1 - Voltar");
+        printf("Opcao: ");
+        opcao = getchar();
+        limpaBuffer();
+    }while(opcao != 49);
+
+    return opcao;
 }
 
 int menu(){
@@ -553,7 +618,7 @@ int main(void){
                 }
                 break;
             case 2:
-                RemoverUsuarios();
+                RemoverUsuarios(moeda, qtd_moedas);
                 break;
             case 3:
                 adicionar_moeda();
