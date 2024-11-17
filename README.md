@@ -168,31 +168,20 @@
    <p align="center">
      Na opção 4 é usada para realizar remover criptomoeda, digitando o ID da moeda desejada para excluir:
      <br><br>
-     <img src=https://github.com/user-attachments/assets/9a9652cb-4919-4cb4-b25b-2af3fbdd01ed>
+     <img src=https://github.com/user-attachments/assets/a4282ff4-1190-4b82-8fc8-3d81ef330e10>
      <br>
+     AVISO! Excluir uma criptomoeda faz com que o saldo de todos os investidores referente a essa criptomoeda sejam excluidos também
 
    </p>
   
-  #### 2.5 Comprar criptomoedas
+  #### 2.5 Consultar Saldo do Investidor
   <p align="center">
-    Opção de número 5 é usada para efetuar a compra de criptomoedas:
-    <br><br>
-    <img src=https://github.com/user-attachments/assets/388473d5-4578-47f2-99d3-8efa5c0055f2>
-    <br>
-    Nessa tela o usuário vê as criptomoedas disponíveis para compra, junto de suas cotações em R$, ele pode selecionar a criptomoeda pelo número especificado.
-    <br>
-    Caso o usuário tenha escolhido alguma criptomoeda para comprar, será pedido o valor em R$ que deseja investir nela, ao inserir um valor válido, necessario inserir a senha do usuario, logo após será informado o valor unitário da moeda junto da taxa cobrada, o usuário precisa confirmar a compra para ela ser realizada.
-    <br><br>
+    Aqui você consulta os saldos que um usuario possui, digitando seu CPF
   </p>
 
-  #### 2.6 Vender criptomoedas
+  #### 2.6 Consultar Extrato do Investidor
    <p align="center">
-     A opção número 6 permite que o usuário venda suas criptomoedas::
-     <br><br>
-     <img src=https://github.com/user-attachments/assets/62e92403-cf2d-402e-9208-c975c729b1a1>
-     <br>
-     É exibido o valor em R$ que o usuário possui de cada moeda, após selecionar a opção é pedido o valor em R$ que ele deseja vender e sua senha, após isso é exibido o valor unitário da moeda que vai restar para o usuario mais a taxa cobrada na venda, caso o usuario confirme a venda é realizada.
-     <br><br>
+     A opção número 6 exibe o extrato do CPF que o administrador inserir
    </p>
   
 #### 2.7 Atualizar cotação
@@ -201,12 +190,12 @@
    <br><br>
    <img src=https://github.com/user-attachments/assets/8579f23f-faec-49a0-9707-97459f7d2297>
    <br>
-   Isso é feito de forma automática, então o usuário só precisa digitar a opção de número 7 que já será feito o processo de atualização das cotas.
+   Isso é feito de forma automática, então o administrador só precisa digitar a opção de número 7 que já será feito o processo de atualização das cotas.
  </p>
 
  #### 2.8 Sair
    <p align="center">
-     Essa opção é a última opção, ela é usada para encerrar o serviço, finalizando a interação com o usuário e fechando o programa.
+     Essa opção é a última opção, ela é usada para encerrar o serviço, finalizando a interação com o administrador e fechando o programa.
 
 ## Créditos
    - Kaio Custodio (22.224.028-5)
