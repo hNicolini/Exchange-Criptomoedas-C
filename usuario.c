@@ -71,42 +71,6 @@ void writeUser(User* user){
     fclose(wfile);
 }
 
-void findUser(User* user, const char* cpf, const char* senha){
-    FILE* rfile = fopen("usuarios", "rb");
-    if(rfile == NULL){
-        puts("No User registered");
-        exit(1);
-    }
-  
-    while(fread(user,sizeof(User),1,rfile)){
-        
-        if(!strcmp(cpf,user->cpf) && !strcmp(senha, user->senha)){ // usuario encontrado !
-            
-            puts("User There is");
-            fclose(rfile); // fechando arquivo apos coletar os dados
-        
-            return;
-        }
-
-    }
-    puts("User There isn't");
-    fclose(rfile);
-
-}
-// verificando se é possivel cadastrar novos usuarios
-int user_limit_over(char* nome_arquivo){
-    FILE* arquivo = fopen(nome_arquivo, "rb");
-    if(arquivo == NULL){
-        return 0; // se o arquivo não existir é possivel cadastrar usuarios
-    }
-    fseek(arquivo,0,SEEK_END);
-    unsigned int tamanho_arquivo = ftell(arquivo); // pegando o tamanho total do arquivo
-    fclose(arquivo);
-    if(tamanho_arquivo < sizeof(User)*LIMITE_USUARIOS){
-        return 0;
-    }
-    return 1;
-}
 //Função Login
 
 int login(User *loginUsuario) {
@@ -203,10 +167,10 @@ void save_saldo(Saldo* saldo){
     
     Saldo allSaldos;
     long pos = -1;
-    while(fread(&allSaldos,sizeof(User),1,readSaldos)) {
+    while(fread(&allSaldos,sizeof(Saldo),1,readSaldos)) {
       
         if (strcmp(allSaldos.cpf, saldo->cpf) == 0 && allSaldos.idCoin == saldo->idCoin) {
-           
+           puts("Saldo ja existee");
             pos =  ftell(readSaldos) - (sizeof(Saldo));
             saldoExiste = 1;
 
@@ -214,6 +178,7 @@ void save_saldo(Saldo* saldo){
     }
     if(saldoExiste){
         if(pos != -1){
+            puts("ATualizando Saldo Existente");
             fseek(readSaldos,pos,SEEK_SET);
             fwrite(saldo,sizeof(Saldo),1,readSaldos);
         }else{
@@ -221,7 +186,7 @@ void save_saldo(Saldo* saldo){
         }
     }
     else{
-        fseek(readSaldos,0,SEEK_SET);
+        fseek(readSaldos,0,SEEK_END);
         fwrite(saldo,sizeof(Saldo),1,readSaldos);
     }
     fclose(readSaldos);
@@ -290,83 +255,6 @@ int SacarSaldo(User *loginUsuario) {
     return 0;
 }
 
-//função de Verificação de usuario
-int usuarioExiste(char* nomeArquivo, char* nome) {
-    FILE* arquivo = fopen(nomeArquivo, "rb");
-    if (arquivo == NULL) {
-        printf("\n\x1b[32m Primeiro usuario do programa. Ola.\x1b[0m\n\n");
-        
-        return 0;
-    }
-
-    User usuariolido;
-    while (fread(&usuariolido, sizeof(User), 1, arquivo)) {
-        if (strcmp(usuariolido.cpf, nome) == 0) {
-            fclose(arquivo);
-            return 1;  
-        }
-    }
-
-    fclose(arquivo);
-    return 0;  
-}
-
-//Função de Cadastro :::::: 
-int cadastro(void) {
-    User novousuario;
-    printf("\t\tCadastro\n");
-    printf("Digite seu CPF: ");
-    fgets(novousuario.cpf,sizeof(novousuario.cpf),stdin);
-    if (usuarioExiste("usuarios", novousuario.cpf)) {
-        printf("Usuario existente ");
-        return 0;
-    }
-    printf("Digite seu nome: ");
-    fgets(novousuario.nome,sizeof(novousuario.nome),stdin);
-
-    printf("Digite sua senha: ");
-    fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
-
-    novousuario.reais = 0;
-    novousuario.qntd_extrato = 0;
-    novousuario.qtd_coins = 0;
-    
-
-    FILE* arquivo = fopen("usuarios", "ab");
-    if (arquivo == NULL) {
-        printf("Erro ao abrir o arquivo de usuários.\n");
-        return 0;
-    }
-
-    writeUser(&novousuario);
-    fclose(arquivo);
-    return 1;
-}
-
-//Função de acesso a pagina de login e cadastro de usuarios
-int usuario(void) {
-    int resposta;
-    printf("Ja possui um Login?\n1- Sim\n2- Nao\n");
-    printf("Opcao: ");
-    scanf("%d", &resposta);
-    limpaBuffer();
-    if (resposta == 1) {
-        return 1;  
-    } else if (resposta == 2) {
-        int users_excedido = user_limit_over("usuarios");
-        if(users_excedido){
-            printf("Numero maximo de usuarios atingidos!");
-            exit(0);
-        }
-        else{
-            cadastro();
-            return 1;
-        }
-    } else {
-        printf("Numero invalido!\n");
-        exit(0);
-    }
-}
 
 // salvar cotas apos atualizar cotacao :::: 
 void salvar_cota(BolsaCripto* moedas, const unsigned int qtd_moedas){
@@ -562,7 +450,7 @@ void comprar_cripto(User* usuario, BolsaCripto* moedas, unsigned int qtd_moedas,
 
     puts("\t\tComprar criptomoedas\n");
     for(unsigned int i = 0; i < qtd_moedas; ++i){
-        printf("[%d] %s - R$ %.2f\n",(moedas[i].idcoin) + 1, moedas[i].nome, moedas[i].cota);
+        printf("[%d] %s - R$ %.2f\n",(moedas[i].idcoin), moedas[i].nome, moedas[i].cota);
     }
 
     printf("Qual das opcoes deseja  comprar: ");
@@ -570,8 +458,8 @@ void comprar_cripto(User* usuario, BolsaCripto* moedas, unsigned int qtd_moedas,
     limpaBuffer();
     
     for(unsigned int i = 0; i < qtd_moedas; ++i){
-        if((moedas[i].idcoin + 1) == opcao){
-            coinId = opcao - 1;
+        if((moedas[i].idcoin) == opcao){
+            coinId = i;
             validId = 1;
             break;
         }
@@ -631,7 +519,9 @@ void comprar_cripto(User* usuario, BolsaCripto* moedas, unsigned int qtd_moedas,
                     saldos->saldo += valor;
                     strcpy(saldos->cpf, usuario->cpf);
                     saldos->idCoin =  moedas[coinId].idcoin;
+                    puts("Salvando acao");
                     save_acao(COMPRA,usuario,valor,moedas[coinId].sigla,moedas[coinId].cota,moedas[coinId].txbuy);
+                    puts("Acao salva");
                     save_saldo(saldos);
                     puts("Compra Realizada!");
 
@@ -754,70 +644,68 @@ int main(void){
     
     char resposta,opcao;
 
-    if (usuario()) {  
-        if (login(&loginUsuario)) {
+    if (login(&loginUsuario)) {
     // pós login Menu
-            do{
-                resposta = menu();
+        do{
+            resposta = menu();
 
-                switch(resposta){
-                    case '1':
-                        consultar_saldos(&loginUsuario,moedas,qtd_moedas, &saldos);
-                        break;
+            switch(resposta){
+                case '1':
+                    consultar_saldos(&loginUsuario,moedas,qtd_moedas, &saldos);
+                    break;
 
-                    case '2':
-                        consultar_extrato(&loginUsuario,moedas,&saldos,qtd_moedas);
-                        break;
+                case '2':
+                    consultar_extrato(&loginUsuario,moedas,&saldos,qtd_moedas);
+                    break;
 
-                    case '3':
-                        AdicionarSaldo(&loginUsuario);
-                        break;
+                case '3':
+                    AdicionarSaldo(&loginUsuario);
+                    break;
 
-                    case '4':
-                        SacarSaldo(&loginUsuario);
-                        break;
+                case '4':
+                    SacarSaldo(&loginUsuario);
+                    break;
+                
+                case '5':
+                    comprar_cripto(&loginUsuario,moedas, qtd_moedas, &saldos);
+                    break;
+
+                case '6':
+                    vender_cripto(&loginUsuario,moedas,&saldos, qtd_moedas);
+                    break;
+
+                case '7':
+                
+                    puts("Valor atual da moeda\n");
+
+                    ler_moedas(&qtd_moedas);
+                    for(unsigned int i = 0; i < qtd_moedas; ++i){
+                        printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
+                    }
+
+                    alterar_valor_moeda(moedas, qtd_moedas);
+                    ler_moedas(&qtd_moedas); // salvando valor alterado
+
+                    puts("\nCotacao atualizada!");
+                    for(unsigned int i = 0; i < qtd_moedas; ++i){
+                        printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
+                    }
                     
-                    case '5':
-                        comprar_cripto(&loginUsuario,moedas, qtd_moedas, &saldos);
-                        break;
+                    do{
+                        puts("1 - Voltar");
+                        printf("Opcao: ");
+                        opcao = getchar();
+                        limpaBuffer();
+                    }while(opcao != 49);
 
-                    case '6':
-                        vender_cripto(&loginUsuario,moedas,&saldos, qtd_moedas);
-                        break;
-
-                    case '7':
-                    
-                        puts("Valor atual da moeda\n");
-
-                        ler_moedas(&qtd_moedas);
-                        for(unsigned int i = 0; i < qtd_moedas; ++i){
-                            printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
-                        }
-
-                        alterar_valor_moeda(moedas, qtd_moedas);
-                        ler_moedas(&qtd_moedas); // salvando valor alterado
-
-                        puts("\nCotacao atualizada!");
-                        for(unsigned int i = 0; i < qtd_moedas; ++i){
-                            printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
-                        }
-                        
-                        do{
-                            puts("1 - Voltar");
-                            printf("Opcao: ");
-                            opcao = getchar();
-                            limpaBuffer();
-                        }while(opcao != 49);
-
-                        break;
-                    
-                    case '8':
-                        puts("\nFim da Sessao.");
-                        free(moedas);
-                        break;
-                }
-            }while(resposta != '8');
-        }
+                    break;
+                
+                case '8':
+                    puts("\nFim da Sessao.");
+                    free(moedas);
+                    break;
+            }
+        }while(resposta != '8');
     }
     return 0; 
 }

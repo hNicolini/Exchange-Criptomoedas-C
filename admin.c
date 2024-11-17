@@ -19,6 +19,7 @@ typedef struct BolsaCripto{
 
 // saldo de cada moeda do usuario
 typedef struct Saldo{
+    char cpf[80];
     int idcoin;
     float saldo;
 }Saldo;
@@ -32,7 +33,6 @@ typedef struct User{
     int qntd_extrato;
     int qtd_coins;
     float reais;
-    Saldo* saldos;
 
 } User;
 
@@ -80,6 +80,149 @@ int gera_idcoin(){
 
 }
 
+void listar_moedas() {
+    FILE* arquivo = fopen("moedas", "rb");
+    if (arquivo == NULL) {
+        puts("Nenhuma criptomoeda registrada.");
+        return;
+    }
+
+    BolsaCripto moeda;
+    puts("\t\tLista de Criptomoedas");
+    while (fread(&moeda, sizeof(BolsaCripto), 1, arquivo) == 1) {
+        printf("ID: %d\n", moeda.idcoin);
+        printf("Nome: %s\n", moeda.nome);
+        printf("Cotacao: %.2f\n", moeda.cota);
+        puts("--------------------------");
+    }
+
+    fclose(arquivo);
+}
+
+// verificando se é possivel cadastrar novos usuarios
+int user_limit_over(char* nome_arquivo){
+    FILE* arquivo = fopen(nome_arquivo, "rb");
+    if(arquivo == NULL){
+        return 0; // se o arquivo não existir é possivel cadastrar usuarios
+    }
+    fseek(arquivo,0,SEEK_END);
+    unsigned int tamanho_arquivo = ftell(arquivo); // pegando o tamanho total do arquivo
+    fclose(arquivo);
+    if(tamanho_arquivo < sizeof(User)*LIMITE_USUARIOS){
+        return 0;
+    }
+    return 1;
+}
+
+//Função de acesso a pagina de login e cadastro de usuarios
+// int usuario(void) {
+//     int resposta;
+//     printf("Ja possui um Login?\n1- Sim\n2- Nao\n");
+//     printf("Opcao: ");
+//     scanf("%d", &resposta);
+//     limpaBuffer();
+//     if (resposta == 1) {
+//         return 1;  
+//     } else if (resposta == 2) {
+//         int users_excedido = user_limit_over("usuarios");
+//         if(users_excedido){
+//             printf("Numero maximo de usuarios atingidos!");
+//             exit(0);
+//         }
+//         else{
+//             cadastro();
+//             return 1;
+//         }
+//     } else {
+//         printf("Numero invalido!\n");
+//         exit(0);
+//     }
+// }
+
+int usuarioExiste(char* nomeArquivo, char* nome) {
+    FILE* arquivo = fopen(nomeArquivo, "rb");
+    if (arquivo == NULL) {
+        printf("\n\x1b[32m Primeiro usuario do programa. Ola.\x1b[0m\n\n");
+        
+        return 0;
+    }
+
+    User usuariolido;
+    while (fread(&usuariolido, sizeof(User), 1, arquivo)) {
+        if (strcmp(usuariolido.cpf, nome) == 0) {
+            fclose(arquivo);
+            return 1;  
+        }
+    }
+
+    fclose(arquivo);
+    return 0;  
+}
+
+
+int cadastro(void) {
+    User novousuario;
+    printf("\t\tCadastro\n");
+    printf("Digite o CPF: ");
+    fgets(novousuario.cpf,sizeof(novousuario.cpf),stdin);
+    if (usuarioExiste("usuarios", novousuario.cpf)) {
+        printf("Usuario existente ");
+        return 0;
+    }
+    printf("Digite seu nome: ");
+    fgets(novousuario.nome,sizeof(novousuario.nome),stdin);
+
+    printf("Digite sua senha: ");
+    fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
+
+    novousuario.reais = 0;
+    novousuario.qntd_extrato = 0;
+    novousuario.qtd_coins = 0;
+    
+
+    FILE* arquivo = fopen("usuarios", "ab");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo de usuários.\n");
+        return 0;
+    }
+
+    writeUser(&novousuario);
+    fclose(arquivo);
+    return 1;
+}
+
+BolsaCripto* ler_moedas(unsigned int* qtd_moedas){
+    BolsaCripto* moedas;
+    
+    FILE* readFile = fopen("moedas", "rb");
+    if(readFile == NULL){
+        printf("Não foi possivel abrir o arquivo para ler\n");
+        *qtd_moedas = 0;
+        return 0;
+    }
+
+    fseek(readFile,0,SEEK_END);
+    size_t pos = ftell(readFile);
+    *qtd_moedas = pos/sizeof(BolsaCripto);
+    moedas = malloc((*qtd_moedas)*sizeof(BolsaCripto));
+    if(moedas == NULL){
+        puts("Nao foi possivel alocar memoria para as moedas");
+        exit(1);
+    }
+    fseek(readFile,0,SEEK_SET);
+    if((*qtd_moedas) == 0){
+        puts("Nenhuma moeda no banco de criptomoedas");
+        fclose(readFile);
+        return NULL;
+    }
+    if (fread((moedas), sizeof(BolsaCripto), *qtd_moedas, readFile) != (*qtd_moedas)) {
+        printf("Erro ao ler as cotas.\n");
+    }
+    fclose(readFile);
+    
+    return moedas;
+}
+
 bool coinExists(char* coinName, char* coinTicker){
     BolsaCripto coins;
 
@@ -104,8 +247,8 @@ bool coinExists(char* coinName, char* coinTicker){
     return false;
 }
 
-void adicionar_moeda(BolsaCripto* moeda){
-
+void adicionar_moeda(){
+    BolsaCripto moeda;
     puts("\t\tCadastrar Criptomoeda");
 
     int idcoin = gera_idcoin();
@@ -118,42 +261,42 @@ void adicionar_moeda(BolsaCripto* moeda){
 
     if(idcoin != -1){
 
-        moeda->idcoin = idcoin;
+        moeda.idcoin = idcoin;
         
         while(true){
             printf("Digite o nome da moeda: ");
-            fgets(moeda->nome,sizeof(moeda->nome),stdin);
-            strcpy(moeda->nome, clear_newLine(moeda->nome));
+            fgets(moeda.nome,sizeof(moeda.nome),stdin);
+            strcpy(moeda.nome, clear_newLine(moeda.nome));
 
-            if(!coinExists(moeda->nome, "")){
+            if(!coinExists(moeda.nome, "")){
                 break;
             }
         }
 
         while(true){
             printf("Digite a sigla da moeda: ");
-            fgets(moeda->sigla,sizeof(moeda->sigla),stdin);
-            strcpy(moeda->sigla, clear_newLine(moeda->sigla));
+            fgets(moeda.sigla,sizeof(moeda.sigla),stdin);
+            strcpy(moeda.sigla, clear_newLine(moeda.sigla));
             // limpaBuffer();
 
-            if(!coinExists("", moeda->sigla)){
+            if(!coinExists("", moeda.sigla)){
                 break;
             }
         }
 
         printf("Digite a cotacao");
-        scanf("%f", &moeda->cota);
+        scanf("%f", &moeda.cota);
         limpaBuffer();
 
         printf("Digite a taxa de compra: ");
-        scanf("%f", &moeda->txbuy);
+        scanf("%f", &moeda.txbuy);
         limpaBuffer();
 
         printf("Digite a taxa de venda: ");
-        scanf("%f", &moeda->txsell);
+        scanf("%f", &moeda.txsell);
         limpaBuffer();
 
-        fwrite(moeda,sizeof(BolsaCripto),1,arquivo);
+        fwrite(&moeda,sizeof(BolsaCripto),1,arquivo);
 
         puts("Criptomoeda Cadastrada com Sucesso");
 
@@ -164,20 +307,149 @@ void adicionar_moeda(BolsaCripto* moeda){
     
     fclose(arquivo);
 
+}
+
+void update_saldos(int idcoin){
+   
+    FILE* rSaldos = fopen("saldos", "rb+");
+    if(rSaldos == NULL){
+        return;
+    }
+
+    // Obtendo numero total de saldos
+    fseek(rSaldos,0, SEEK_END);
+    size_t pos = ftell(rSaldos);
+    size_t qtd_saldos = pos/sizeof(Saldo);
+
+
+    Saldo* all_saldos = malloc(qtd_saldos * sizeof(Saldo));
+    fseek(rSaldos,0,SEEK_SET);
+    fread(all_saldos, sizeof(Saldo), qtd_saldos, rSaldos);
+    if(all_saldos == NULL){
+        puts("Erro na alocacao de memoria para all_saldos");
+        return;
+    }
+    fclose(rSaldos);
+
+    Saldo* filteredSaldos = malloc((qtd_saldos-1)*sizeof(Saldo));
+    if(filteredSaldos == NULL){
+        puts("Erro na alocacao de memoria para filteredSaldos");
+        free(all_saldos);
+        return;
+    }
+    int cont = 0;
+
+    // Pegando os saldos que nao foram removidos
+    for(unsigned int i = 0; i < qtd_saldos; ++i){
+        if(all_saldos[i].idcoin != idcoin){
+            filteredSaldos[cont] = all_saldos[i];
+            cont++;
+        }
+    }
+    free(all_saldos);
+    // Escrevendo os saldos que nao tiveram a moeda removida no arquivo
+    FILE* rewriteSaldos = fopen("saldos", "wb");
+    if(rewriteSaldos == NULL){
+        puts("Impossivel reescrever saldos");
+        free(filteredSaldos);
+        return;
+    }
+    
+    fwrite(filteredSaldos,sizeof(Saldo),cont,rewriteSaldos);
+   
+    free(filteredSaldos);
+   
+    fclose(rewriteSaldos);
+ 
+    printf("Todos os saldos com idCoin %d foram excluidos\n\n",idcoin);
+}
+
+
+
+void remover_moeda(BolsaCripto* moedas, unsigned int qtd_moedas){
+    int id, indexCoin;
+    int valid = 0;
+
+    puts("\t\tExcluir Criptomoeda");
+    listar_moedas();
+    printf("Insira o ID da Moeda que deseja remover: ");
+    scanf("%d",&id);
+    for(unsigned int i = 0; i < qtd_moedas; ++i){
+        if(moedas[i].idcoin == id){
+            valid = 1;
+            indexCoin = i;
+            break;
+        }
+    }
+    if(!valid){
+        puts("ID invalido");
+    }
+    else{
+        BolsaCripto* filteredCoins = malloc((qtd_moedas - 1)*sizeof(BolsaCripto));
+
+        FILE* wCriptos = fopen("moedas", "wb");
+        if(wCriptos == NULL){
+            puts("Nenhuma cripto cadastrada");
+            return;
+            
+        }
+        int filtIndex = 0;
+        for(unsigned int i = 0; i < qtd_moedas; ++i){
+            if(moedas[i].idcoin != id){
+                filteredCoins[filtIndex] = moedas[i];
+                filtIndex++;
+            }
+        }
+        fwrite(filteredCoins,sizeof(BolsaCripto), qtd_moedas - 1, wCriptos);
+        printf("A moeda %s foi removida.\n",moedas[indexCoin].nome);
+        fclose(wCriptos);
+        update_saldos(id);
+        listar_moedas();
+        
+    }
+}
+
+void salvar_cota(BolsaCripto* moedas, const unsigned int qtd_moedas){
+    FILE* arquivo = fopen("moedas", "wb");
+    // Salvando cotas em arquivo binario
+    if(arquivo == NULL){
+        printf("Não foi possivel abrir o arquivo para salvar cotas");
+        exit(1);
+    }
+    
     
 
+    fwrite(moedas,sizeof(BolsaCripto),qtd_moedas, arquivo);
+    fclose(arquivo);
+}
+
+void alterar_valor_moeda(BolsaCripto* moedas, const unsigned int qtd_moedas){
+    // gerando o numero aleatorio entre -5% e 5%
+    srand(time(NULL));
+    float numero_gerado =((rand() % 5) + 1.0)/100.0;
+    int escolhe_sinal = rand()% 2;
+    if(escolhe_sinal == 1){
+        numero_gerado*=-1;
+    }
+    printf("\nAumentou/Diminuiu %.2f%c \n",numero_gerado*100.0,37);
+    
+    for(unsigned int i = 0; i < qtd_moedas; ++i){
+        moedas[i].cota += numero_gerado;
+    }
+
+   salvar_cota(moedas, qtd_moedas);
 }
 
 int menu(){
     int opcao;
     puts("\t\tMENU ADMIN");
-    puts("[1] Cadastrar Investidor");
+    puts("[1] Cadastrar Investidor"); //feito
     puts("[2] Remover Investidor");
-    puts("[3] Cadastrar Criptomoeda");
-    puts("[4] Remover Criptomoeda");
+    puts("[3] Cadastrar Criptomoeda"); //feito
+    puts("[4] Remover Criptomoeda"); // feito
     puts("[5] Consultar Saldo do Investidor");
     puts("[6] Consultar Extrato do Investidor");
-    puts("[7] Atualizar Cotacao");
+    puts("[7] Atualizar Cotacao"); // feito
     puts("[8] Sair");
 
     printf("Opcao: ");
@@ -188,22 +460,28 @@ int menu(){
 }
 
 int main(void){
-    // User usuario;
-    BolsaCripto moeda;
+    unsigned int qtd_moedas;
+    BolsaCripto* moeda = ler_moedas(&qtd_moedas);
+    User usuario;
     
     while(true){
         switch(menu()){
             case 1:
                 puts("Cadastrar Investidor");
+                if(!user_limit_over("usuarios")){
+                    cadastro(&usuario);
+                }
                 break;
             case 2:
                 puts("Remover Investidor");
                 break;
             case 3:
-                adicionar_moeda(&moeda);
+                adicionar_moeda();
+                ler_moedas(&qtd_moedas);
                 break;
             case 4:
-                puts("Remover Criptomoeda");
+                remover_moeda(moeda,qtd_moedas);
+                ler_moedas(&qtd_moedas);
             case 5:
                 puts("Consultar Saldo do Investidor");
                 break;
@@ -211,9 +489,33 @@ int main(void){
                 puts("Consultar Extrato do Investidor");
                 break;
             case 7:
-                puts("Atualiza Cotacao/ Reciclar do outro programa");
+                int opcao;
+                puts("Valor atual da moeda\n");
+
+                ler_moedas(&qtd_moedas);
+                for(unsigned int i = 0; i < qtd_moedas; ++i){
+                    printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
+                }
+
+                alterar_valor_moeda(moeda, qtd_moedas);
+                ler_moedas(&qtd_moedas); // salvando valor alterado
+
+                puts("\nCotacao atualizada!");
+                for(unsigned int i = 0; i < qtd_moedas; ++i){
+                    printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
+                }
+                
+                do{
+                    puts("1 - Voltar");
+                    printf("Opcao: ");
+                    scanf("%d", &opcao);
+                    limpaBuffer();
+                }while(opcao != 1);
+
+                break;
             case 8:
                 puts("Finalizando sessao");
+                free(moeda);
                 exit(1);
                 break;
             default:

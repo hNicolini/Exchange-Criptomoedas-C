@@ -31,7 +31,7 @@ void listar_moedas() {
     puts("\t\tLista de Criptomoedas");
     while (fread(&moeda, sizeof(BolsaCripto), 1, arquivo) == 1) {
         printf("ID: %d\n", moeda.idcoin);
-        printf("Nome: %s", moeda.nome); // fgets inclui \n, não precisa adicionar
+        printf("Nome: %s\n", moeda.nome); // fgets inclui \n, não precisa adicionar
         printf("Sigla: %s\n", moeda.sigla);
         printf("Cotacao: %.2f\n", moeda.cota);
         printf("Taxa de Compra: %.2f\n", moeda.txbuy);
@@ -53,7 +53,8 @@ void listar_saldos(){
     while(fread(&saldos, sizeof(Saldo),1,arquivo) == 1){
         printf("CPF: %s", saldos.cpf);
         printf("IdCOin: %d\n",saldos.idCoin);
-        printf("Saldo: %.4f",saldos.saldo);
+        printf("Saldo: %.2f\n",saldos.saldo);
+        puts("-------------------");
     }
     fclose(arquivo);
 }
