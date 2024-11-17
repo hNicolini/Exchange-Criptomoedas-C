@@ -99,6 +99,20 @@ void listar_moedas() {
     fclose(arquivo);
 }
 
+void listar_users(){
+    User usuarios;
+    FILE* rUsers = fopen("usuarios", "rb");
+    if(rUsers == NULL){
+        puts("Sem usuarios para ler");
+        return;
+    }
+    while(fread(&usuarios,sizeof(User),1,rUsers)){
+        printf("CPF: %s\n", usuarios.cpf);
+        printf("Nome: %s\n",usuarios.nome);
+        puts("-----------------");
+    }
+}
+
 // verificando se é possivel cadastrar novos usuarios
 int user_limit_over(char* nome_arquivo){
     FILE* arquivo = fopen(nome_arquivo, "rb");
@@ -113,31 +127,6 @@ int user_limit_over(char* nome_arquivo){
     }
     return 1;
 }
-
-//Função de acesso a pagina de login e cadastro de usuarios
-// int usuario(void) {
-//     int resposta;
-//     printf("Ja possui um Login?\n1- Sim\n2- Nao\n");
-//     printf("Opcao: ");
-//     scanf("%d", &resposta);
-//     limpaBuffer();
-//     if (resposta == 1) {
-//         return 1;  
-//     } else if (resposta == 2) {
-//         int users_excedido = user_limit_over("usuarios");
-//         if(users_excedido){
-//             printf("Numero maximo de usuarios atingidos!");
-//             exit(0);
-//         }
-//         else{
-//             cadastro();
-//             return 1;
-//         }
-//     } else {
-//         printf("Numero invalido!\n");
-//         exit(0);
-//     }
-// }
 
 int usuarioExiste(char* nomeArquivo, char* nome) {
     FILE* arquivo = fopen(nomeArquivo, "rb");
@@ -159,21 +148,35 @@ int usuarioExiste(char* nomeArquivo, char* nome) {
     return 0;  
 }
 
+void writeUser(User* user){
+    FILE* wfile = fopen("usuarios", "ab");
+    if(wfile == NULL){
+        puts("First User!");
+    }
+
+    fwrite(user,sizeof(User),1,wfile); // escrevendo credenciais + extrato do usuario + saldo de reais
+
+    fclose(wfile);
+}
+
 
 int cadastro(void) {
     User novousuario;
     printf("\t\tCadastro\n");
     printf("Digite o CPF: ");
     fgets(novousuario.cpf,sizeof(novousuario.cpf),stdin);
+    strcpy(novousuario.cpf, clear_newLine(novousuario.cpf));
     if (usuarioExiste("usuarios", novousuario.cpf)) {
         printf("Usuario existente ");
         return 0;
     }
     printf("Digite seu nome: ");
     fgets(novousuario.nome,sizeof(novousuario.nome),stdin);
+    strcpy(novousuario.nome, clear_newLine(novousuario.nome));
 
     printf("Digite sua senha: ");
     fgets(novousuario.senha,sizeof(novousuario.senha),stdin);
+    strcpy(novousuario.senha, clear_newLine(novousuario.senha));
 
     novousuario.reais = 0;
     novousuario.qntd_extrato = 0;
@@ -309,7 +312,7 @@ void adicionar_moeda(){
 
 }
 
-void update_saldos(int idcoin){
+void update_saldos(int idcoin, char* cpf){
    
     FILE* rSaldos = fopen("saldos", "rb+");
     if(rSaldos == NULL){
@@ -341,7 +344,7 @@ void update_saldos(int idcoin){
 
     // Pegando os saldos que nao foram removidos
     for(unsigned int i = 0; i < qtd_saldos; ++i){
-        if(all_saldos[i].idcoin != idcoin){
+        if(all_saldos[i].idcoin != idcoin || all_saldos[i].cpf != cpf){
             filteredSaldos[cont] = all_saldos[i];
             cont++;
         }
@@ -363,8 +366,6 @@ void update_saldos(int idcoin){
  
     printf("Todos os saldos com idCoin %d foram excluidos\n\n",idcoin);
 }
-
-
 
 void remover_moeda(BolsaCripto* moedas, unsigned int qtd_moedas){
     int id, indexCoin;
@@ -403,7 +404,7 @@ void remover_moeda(BolsaCripto* moedas, unsigned int qtd_moedas){
         fwrite(filteredCoins,sizeof(BolsaCripto), qtd_moedas - 1, wCriptos);
         printf("A moeda %s foi removida.\n",moedas[indexCoin].nome);
         fclose(wCriptos);
-        update_saldos(id);
+        update_saldos(id,"");
         listar_moedas();
         
     }
@@ -440,11 +441,90 @@ void alterar_valor_moeda(BolsaCripto* moedas, const unsigned int qtd_moedas){
    salvar_cota(moedas, qtd_moedas);
 }
 
+void RemoverUsuarios(){
+    char cpf[80];
+    int validCpf = 0;
+
+    User usuarios;
+
+    puts("\t\tRemover Investidor");
+    listar_users();
+    printf("Insira o CPF do Investidor que deseja remover: ");
+    fgets(cpf,sizeof(cpf),stdin);
+    strcpy(cpf,clear_newLine(cpf));
+    
+    FILE* coletarusers = fopen("usuarios", "rb+");
+    if(coletarusers == NULL){
+        puts("Nenhum usuario cadastrado");
+        return;
+    }
+    while(fread(&usuarios,sizeof(User),1,coletarusers)){
+        if(strcmp(cpf, usuarios.cpf) == 0){
+            puts("Achou o usuario");
+            validCpf = 1;
+            break;
+        }
+    }
+    if(!validCpf){
+        puts("CPF invalido");
+        fclose(coletarusers);
+        return;
+    }
+
+    // Obtendo numero total de usuarios
+    fseek(coletarusers,0, SEEK_END);
+    size_t pos = ftell(coletarusers);
+    size_t qtd_usuarios = pos/sizeof(User);
+
+
+    User* all_users = malloc(qtd_usuarios * sizeof(User));
+    fseek(coletarusers,0,SEEK_SET);
+    fread(all_users, sizeof(User), qtd_usuarios, coletarusers);
+    if(all_users == NULL){
+        puts("Erro na alocacao de memoria para all_users");
+        return;
+    }
+    fclose(coletarusers);
+
+    User* filteredUsers = malloc((qtd_usuarios)*sizeof(User));
+    if(filteredUsers == NULL){
+        puts("Erro na alocacao de memoria para filteredUsers");
+        free(all_users);
+        return;
+    }
+    int cont = 0;
+
+    // Pegando os usuarios que nao foram removidos
+    for(unsigned int i = 0; i < qtd_usuarios; i++){
+        if(strcmp(all_users[i].cpf,cpf) != 0){
+            filteredUsers[cont] = all_users[i];
+            cont++;
+        }
+    }
+    free(all_users);
+
+    // Escrevendo os usuarios que nao foram removidos no arquivo
+    FILE* rewriteUsers = fopen("usuarios", "wb");
+    if(rewriteUsers == NULL){
+        puts("Impossivel reescrever usuarios");
+        free(filteredUsers);
+        return;
+    }
+    
+    fwrite(filteredUsers,sizeof(User),cont,rewriteUsers);
+    
+    free(filteredUsers);
+    update_saldos(-1,cpf);
+    fclose(rewriteUsers);
+    
+    printf("Usuario com CPF [%s] foi removido.\n",cpf);
+}
+
 int menu(){
     int opcao;
     puts("\t\tMENU ADMIN");
     puts("[1] Cadastrar Investidor"); //feito
-    puts("[2] Remover Investidor");
+    puts("[2] Remover Investidor"); // feito
     puts("[3] Cadastrar Criptomoeda"); //feito
     puts("[4] Remover Criptomoeda"); // feito
     puts("[5] Consultar Saldo do Investidor");
@@ -462,18 +542,18 @@ int menu(){
 int main(void){
     unsigned int qtd_moedas;
     BolsaCripto* moeda = ler_moedas(&qtd_moedas);
-    User usuario;
-    
+    int opcao;
+
     while(true){
         switch(menu()){
             case 1:
                 puts("Cadastrar Investidor");
                 if(!user_limit_over("usuarios")){
-                    cadastro(&usuario);
+                    cadastro();
                 }
                 break;
             case 2:
-                puts("Remover Investidor");
+                RemoverUsuarios();
                 break;
             case 3:
                 adicionar_moeda();
@@ -489,12 +569,12 @@ int main(void){
                 puts("Consultar Extrato do Investidor");
                 break;
             case 7:
-                int opcao;
+               
                 puts("Valor atual da moeda\n");
 
                 ler_moedas(&qtd_moedas);
                 for(unsigned int i = 0; i < qtd_moedas; ++i){
-                    printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
+                    printf("%s : R$ %.2f\n", moeda[i].nome, moeda[i].cota);
                 }
 
                 alterar_valor_moeda(moeda, qtd_moedas);
@@ -502,7 +582,7 @@ int main(void){
 
                 puts("\nCotacao atualizada!");
                 for(unsigned int i = 0; i < qtd_moedas; ++i){
-                    printf("%s : R$ %.2f\n", moedas[i].nome, moedas[i].cota);
+                    printf("%s : R$ %.2f\n", moeda[i].nome, moeda[i].cota);
                 }
                 
                 do{

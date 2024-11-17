@@ -44,6 +44,14 @@ void limpaBuffer() {
     while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
+char* clear_newLine(char* string){
+
+    string[strcspn(string, "\n")] = 0;
+
+    return string;
+}
+
+
 // procura o usuario
 long seekUser(User* loginUsuario, FILE* arquivo){
     User usuario;
@@ -82,8 +90,11 @@ int login(User *loginUsuario) {
     }
     printf("Digite o CPF: ");
     fgets(loginUsuario->cpf,sizeof(loginUsuario->cpf),stdin);
+    strcpy(loginUsuario->cpf,clear_newLine(loginUsuario->cpf));
     printf("Digite sua senha: ");
     fgets(loginUsuario->senha,sizeof(loginUsuario->senha),stdin);
+    strcpy(loginUsuario->csenha,clear_newLine(loginUsuario->senha));
+
     
     
 

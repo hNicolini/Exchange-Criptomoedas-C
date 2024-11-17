@@ -18,7 +18,30 @@ typedef struct Saldo{
     int idCoin;
     float saldo;
 }Saldo;
+typedef struct User{
+    char cpf[80];
+    char nome[50];
+    char senha[80];
+    char extrato[LIMITE_EXTRATOS][200];
+    int qntd_extrato;
+    int qtd_coins;
+    float reais;
 
+} User;
+
+void listar_users(){
+    User usuarios;
+    FILE* rUsers = fopen("usuarios", "rb");
+    if(rUsers == NULL){
+        puts("Sem usuarios para ler");
+        return;
+    }
+    while(fread(&usuarios,sizeof(User),1,rUsers)){
+        printf("CPF: %s\n", usuarios.cpf);
+        printf("Nome: %s\n",usuarios.nome);
+        puts("-----------------");
+    }
+}
 
 void listar_moedas() {
     FILE* arquivo = fopen("moedas", "rb");
@@ -61,6 +84,7 @@ void listar_saldos(){
 int main(void){
     listar_moedas();
     listar_saldos();
+    listar_users();
     
 
 }
