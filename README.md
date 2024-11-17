@@ -123,10 +123,12 @@
    <p align="center">
      Essa opção é a última opção, ela é usada para encerrar o serviço, finalizando a interação com o usuário e fechando o programa.
    </p>
+   
 ### Administrador
-     #### Pagina inicial
-     <p align="center">Ao abrir o pograma será necessário realizar o login:</p>
-     <br><br>
+
+#### Pagina inicial
+  <p align="center">Ao abrir o pograma será necessário realizar o login:</p>
+    <br><br>
    <img src=https://github.com/user-attachments/assets/ddf9d22d-6692-45bb-94a6-05ed4720e2ae>
    <br>
      As credenciais de login dos administradores está localizada no arquivo "logins_admin.csv"
