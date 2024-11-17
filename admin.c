@@ -74,6 +74,10 @@ void limpaBuffer() {
     while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
+void login_admin(){
+    
+}
+
 int gera_idcoin(){
     BolsaCripto recentCoin;
 
@@ -677,13 +681,13 @@ void consultar_extrato(BolsaCripto* moedas, unsigned int qtd_moedas){
 int menu(){
     int opcao;
     puts("\t\tMENU ADMIN");
-    puts("[1] Cadastrar Investidor"); //feito
-    puts("[2] Remover Investidor"); // feito
-    puts("[3] Cadastrar Criptomoeda"); //feito
-    puts("[4] Remover Criptomoeda"); // feito
+    puts("[1] Cadastrar Investidor");
+    puts("[2] Remover Investidor"); 
+    puts("[3] Cadastrar Criptomoeda");
+    puts("[4] Remover Criptomoeda"); 
     puts("[5] Consultar Saldo do Investidor");
     puts("[6] Consultar Extrato do Investidor");
-    puts("[7] Atualizar Cotacao"); // feito
+    puts("[7] Atualizar Cotacao"); 
     puts("[8] Sair");
 
     printf("Opcao: ");
