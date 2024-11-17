@@ -122,6 +122,7 @@
  #### 2.8 Sair
    <p align="center">
      Essa opção é a última opção, ela é usada para encerrar o serviço, finalizando a interação com o usuário e fechando o programa.
+   </p>
 ### Administrador
      #### Pagina inicial
      <p align="center">Ao abrir o pograma será necessário realizar o login:</p>
