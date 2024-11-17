@@ -534,7 +534,7 @@ void remover_moeda(BolsaCripto *moedas, unsigned int qtd_moedas) {
         filtIndex++;
       }
     }
-    fwrite(filteredCoins, sizeof(BolsaCripto), qtd_moedas - 1, wCriptos);
+    fwrite(filteredCoins, sizeof(BolsaCripto), filtIndex, wCriptos);
     printf("A moeda %s foi removida.\n", moedas[indexCoin].nome);
     fclose(wCriptos);
     update_saldos(id, "");
