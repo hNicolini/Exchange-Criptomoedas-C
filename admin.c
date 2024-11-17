@@ -123,8 +123,7 @@ void adicionar_moeda(BolsaCripto* moeda){
         while(true){
             printf("Digite o nome da moeda: ");
             fgets(moeda->nome,sizeof(moeda->nome),stdin);
-            strcpy(livros->titulo, clear_newLine(livros->titulo));;
-            // limpaBuffer();
+            strcpy(moeda->nome, clear_newLine(moeda->nome));
 
             if(!coinExists(moeda->nome, "")){
                 break;
