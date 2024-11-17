@@ -467,11 +467,21 @@ void update_saldos(int idcoin, char *cpf) {
   }
   int cont = 0;
 
-  // Pegando os saldos que nao foram removidos
+  // Pegando os saldos que nao tiveram a moeda removida
+  if(idcoin >= 0){
   for (unsigned int i = 0; i < qtd_saldos; ++i) {
-    if (all_saldos[i].idcoin != idcoin || all_saldos[i].cpf != cpf) {
+    if (all_saldos[i].idcoin != idcoin) {
       filteredSaldos[cont] = all_saldos[i];
       cont++;
+    }
+  }
+  }
+  else{
+    for (unsigned int i = 0; i < qtd_saldos; ++i) {
+        if (strcmp(all_saldos[i].cpf, cpf) != 0) {
+        filteredSaldos[cont] = all_saldos[i];
+        cont++;
+        }
     }
   }
   free(all_saldos);
@@ -601,7 +611,7 @@ void RemoverUsuarios(BolsaCripto *moedas, unsigned int qtd_moedas) {
     size_t qtd_usuarios = pos / sizeof(User);
 
     User *all_users = malloc(qtd_usuarios * sizeof(User));
-    fseek(coletarusers, 0, SEEK_SET);
+    rewind(coletarusers);
     fread(all_users, sizeof(User), qtd_usuarios, coletarusers);
     if (all_users == NULL) {
       puts("Erro na alocacao de memoria para all_users");
@@ -609,7 +619,7 @@ void RemoverUsuarios(BolsaCripto *moedas, unsigned int qtd_moedas) {
     }
     fclose(coletarusers);
 
-    User *filteredUsers = malloc((qtd_usuarios) * sizeof(User));
+    User *filteredUsers = malloc((qtd_usuarios - 1) * sizeof(User));
     if (filteredUsers == NULL) {
       puts("Erro na alocacao de memoria para filteredUsers");
       free(all_users);
