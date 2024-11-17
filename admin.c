@@ -74,9 +74,55 @@ void limpaBuffer() {
     while ((c = getchar()) != '\n' && c != EOF) { }
 }
 
-void login_admin(){
+int login_admin(){
+    char linha[255];
+    char login[50];
+    char senha[50];
+    char login_arquivo[50];
+    char senha_arquivo[50];
+
+    FILE* readAdmins = fopen("../logins_admin.csv", "r");
+    if (readAdmins == NULL) {
+        puts("Erro ao abrir o arquivo das credencias dos admins.");
+        return 0;
+    }
+
+    puts("TELA DE LOGIN ADMINISTRADOR");
+
+    printf("User: ");
+    fgets(login,sizeof(login), stdin);
+    strcpy(login,clear_newLine(login));
+
+    printf("Senha: ");
+    fgets(senha,sizeof(senha), stdin);
+    strcpy(senha,clear_newLine(senha));
+
+
     
+
+    // pular os atributos
+    if (fgets(linha, sizeof(linha), readAdmins) == NULL) {
+        fclose(readAdmins);
+        puts("Erro: Arquivo vazio ou problema ao ler os atributos.");
+        return 0;
+    }
+
+    // Ler cada credencial do arquivo
+    while (fgets(linha, sizeof(linha), readAdmins)) {
+        // Separar login e senha usando vírgula como separador
+        if (sscanf(linha, "%[^,],%s", login_arquivo, senha_arquivo) == 2) {
+            // Comparar login e senha
+            if (strcmp(login, login_arquivo) == 0 && strcmp(senha, senha_arquivo) == 0) {
+                fclose(readAdmins);
+                return 1;
+            }
+        }
+    }
+
+    fclose(readAdmins);
+    return 0;
 }
+
 
 int gera_idcoin(){
     BolsaCripto recentCoin;
@@ -701,65 +747,69 @@ int main(void){
     unsigned int qtd_moedas;
     BolsaCripto* moeda = ler_moedas(&qtd_moedas);
     int opcao;
-
-    while(true){
-        switch(menu()){
-            case 1:
-                puts("Cadastrar Investidor");
-                if(!user_limit_over("usuarios")){
-                    cadastro();
-                }
-                break;
-            case 2:
-                RemoverUsuarios(moeda, qtd_moedas);
-                break;
-            case 3:
-                adicionar_moeda();
-                ler_moedas(&qtd_moedas);
-                break;
-            case 4:
-                remover_moeda(moeda,qtd_moedas);
-                ler_moedas(&qtd_moedas);
-            case 5:
-                consultar_saldos(moeda, qtd_moedas);
-                break;
-            case 6:
-                consultar_extrato(moeda, qtd_moedas);
-                break;
-            case 7:
-               
-                puts("Valor atual da moeda\n");
-
-                ler_moedas(&qtd_moedas);
-                for(unsigned int i = 0; i < qtd_moedas; ++i){
-                    printf("%s : R$ %.2f\n", moeda[i].nome, moeda[i].cota);
-                }
-
-                alterar_valor_moeda(moeda, qtd_moedas);
-                ler_moedas(&qtd_moedas); // salvando valor alterado
-
-                puts("\nCotacao atualizada!");
-                for(unsigned int i = 0; i < qtd_moedas; ++i){
-                    printf("%s : R$ %.2f\n", moeda[i].nome, moeda[i].cota);
-                }
+    if(login_admin()){
+        while(true){
+            switch(menu()){
+                case 1:
+                    puts("Cadastrar Investidor");
+                    if(!user_limit_over("usuarios")){
+                        cadastro();
+                    }
+                    break;
+                case 2:
+                    RemoverUsuarios(moeda, qtd_moedas);
+                    break;
+                case 3:
+                    adicionar_moeda();
+                    ler_moedas(&qtd_moedas);
+                    break;
+                case 4:
+                    remover_moeda(moeda,qtd_moedas);
+                    ler_moedas(&qtd_moedas);
+                case 5:
+                    consultar_saldos(moeda, qtd_moedas);
+                    break;
+                case 6:
+                    consultar_extrato(moeda, qtd_moedas);
+                    break;
+                case 7:
                 
-                do{
-                    puts("1 - Voltar");
-                    printf("Opcao: ");
-                    scanf("%d", &opcao);
-                    limpaBuffer();
-                }while(opcao != 1);
+                    puts("Valor atual da moeda\n");
 
-                break;
-            case 8:
-                puts("Finalizando sessao");
-                free(moeda);
-                exit(1);
-                break;
-            default:
-                puts("Opcao invalida");
-                break;
+                    ler_moedas(&qtd_moedas);
+                    for(unsigned int i = 0; i < qtd_moedas; ++i){
+                        printf("%s : R$ %.2f\n", moeda[i].nome, moeda[i].cota);
+                    }
+
+                    alterar_valor_moeda(moeda, qtd_moedas);
+                    ler_moedas(&qtd_moedas); // salvando valor alterado
+
+                    puts("\nCotacao atualizada!");
+                    for(unsigned int i = 0; i < qtd_moedas; ++i){
+                        printf("%s : R$ %.2f\n", moeda[i].nome, moeda[i].cota);
+                    }
+                    
+                    do{
+                        puts("1 - Voltar");
+                        printf("Opcao: ");
+                        scanf("%d", &opcao);
+                        limpaBuffer();
+                    }while(opcao != 1);
+
+                    break;
+                case 8:
+                    puts("Finalizando sessao");
+                    free(moeda);
+                    exit(1);
+                    break;
+                default:
+                    puts("Opcao invalida");
+                    break;
+            }
         }
+    }
+    else{
+        puts("Login ou senha invalido");
     }
     return 0;
     
