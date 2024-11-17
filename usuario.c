@@ -32,9 +32,6 @@ typedef struct User{
 
 } User;
 
-
-
-//pegando se o tipo de acao do usuario foi venda ou compra
 enum tipo_acao {VENDA, COMPRA};
 
 // limpa o buffer de entrada
@@ -93,7 +90,7 @@ int login(User *loginUsuario) {
     strcpy(loginUsuario->cpf,clear_newLine(loginUsuario->cpf));
     printf("Digite sua senha: ");
     fgets(loginUsuario->senha,sizeof(loginUsuario->senha),stdin);
-    strcpy(loginUsuario->csenha,clear_newLine(loginUsuario->senha));
+    strcpy(loginUsuario->senha,clear_newLine(loginUsuario->senha));
 
     
     
@@ -233,6 +230,7 @@ int check_password(char* user_senha){
     char senha[80];
     printf("Digite sua senha: ");
     fgets(senha,sizeof(senha),stdin);
+    strcpy(senha, clear_newLine(senha));
     if(strcmp(senha,user_senha) == 0){
         return 1;
     }
@@ -381,6 +379,7 @@ char consultar_saldos(User* usuario, BolsaCripto* moedas, unsigned int qtd_moeda
             }
         }
     }
+    fclose(readSaldos);
     do{
         puts("1 - Voltar");
         printf("Opcao: ");
@@ -412,6 +411,7 @@ char consultar_extrato(User* usuario, BolsaCripto* moedas, Saldo* saldos, unsign
         fseek(readSaldos,0,SEEK_SET);
         printf("\n");
     }
+    fclose(readSaldos);
 
    do{
         puts("1 - Voltar");

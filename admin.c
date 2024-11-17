@@ -6,7 +6,7 @@
 
 #define LIMITE_USUARIOS 10
 #define LIMITE_EXTRATOS 100
-
+enum tipo_consulta {SALDO=1, EXTRATO=2};
 
 // aqui estão as criptomoedas
 typedef struct BolsaCripto{
@@ -126,6 +126,7 @@ void listar_moedas() {
 
 void listar_users(){
     User usuarios;
+    Saldo saldos;
     FILE* rUsers = fopen("usuarios", "rb");
     if(rUsers == NULL){
         puts("Sem usuarios para ler");
@@ -136,6 +137,62 @@ void listar_users(){
         printf("Nome: %s\n",usuarios.nome);
         puts("-----------------");
     }
+      
+}
+    
+void consultar_saldos(BolsaCripto* moedas, unsigned int qtd_moedas){
+    char opcao, cpf[80];
+    int encontrou = 0;
+    Saldo saldos;
+    User usuario;
+    puts("\t\tConsultar Saldo de Investidor");
+    listar_users();
+    printf("Insira o CPF: ");
+    fgets(cpf,sizeof(cpf),stdin);
+    strcpy(cpf, clear_newLine(cpf));
+
+    printf("\t\tSaldo na Carteira do cpf: %s\n\n", cpf);
+    
+    FILE* readUsers = fopen("usuarios", "rb");
+    if(readUsers == NULL){
+        puts("Nao foi possivel abrir o arquivo usuarios para ler");
+        return;
+    }
+    while(fread(&usuario,sizeof(User),1,readUsers)){
+        if(strcmp(usuario.cpf, cpf) == 0){
+            encontrou = 1;
+            break;
+        }
+    }
+    fclose(readUsers);
+    if(!encontrou){
+        puts("CPF invalido");
+        return;
+    }
+    printf("REAL: %.2f\n", usuario.reais);
+    FILE* readSaldos = fopen("saldos", "rb");
+    if(readSaldos == NULL){
+        puts("Nenhum Saldo de Cripto Existente no sistema");
+    }
+
+    while(fread(&saldos,sizeof(Saldo),1,readSaldos)){
+        if(!strcmp(saldos.cpf,  usuario.cpf)){
+            for(unsigned int i = 0; i < qtd_moedas; ++i){
+                if(saldos.idcoin == moedas[i].idcoin ){
+                    printf("%s: R$%.2f\n",moedas[i].nome, saldos.saldo);
+                }
+            }
+        }
+    }
+    fclose(readSaldos);
+    do{
+        puts("1 - Voltar");
+        printf("Opcao: ");
+        opcao = getchar();
+        limpaBuffer();
+    }while(opcao != 49);
+
+    return;
 }
 
 // verificando se é possivel cadastrar novos usuarios
@@ -553,20 +610,52 @@ void RemoverUsuarios(BolsaCripto* moedas, unsigned int qtd_moedas){
     return;
 }
 
-char consultar_extrato(User* usuario, BolsaCripto* moedas, Saldo* saldos, unsigned int qtd_moedas){
-    char opcao;
-    int limite = (usuario->qntd_extrato);
+void consultar_extrato(BolsaCripto* moedas, unsigned int qtd_moedas){
+    char opcao, cpf[80];
+    int encontrou = 0;
+    Saldo saldos;
+    User usuario;
+
+    puts("\t\tConsultar Extrato de Investidor");
+    listar_users();
+    printf("Insira o CPF: ");
+    fgets(cpf,sizeof(cpf),stdin);
+    strcpy(cpf, clear_newLine(cpf));
+
+    printf("\t\tExtrato do cpf: %s\n\n", cpf);
+    
+    FILE* readUsers = fopen("usuarios", "rb");
+    if(readUsers == NULL){
+        puts("Nao foi possivel abrir o arquivo usuarios para ler");
+        return;
+    }
+    while(fread(&usuario,sizeof(User),1,readUsers)){
+        if(strcmp(usuario.cpf, cpf) == 0){
+            encontrou = 1;
+            break;
+        }
+    }
+    if(!encontrou){
+        puts("CPF invalido");
+        fclose(readUsers);
+        return;
+    }
+    fclose(readUsers);
+
+    int limite = (usuario.qntd_extrato);
+
     FILE* readSaldos = fopen("saldos", "rb");
-    printf("\t\tExtrato da conta de %s\n",usuario->nome);
+
+    printf("\t\tExtrato da conta de %s\n",usuario.nome);
     for(int i = 0; i < limite; i++ ){
-        printf("%s",usuario->extrato[i]);
-        while(fread(saldos,sizeof(Saldo),1,readSaldos)){
-            if(!strcmp(saldos->cpf,  usuario->cpf)){
+        printf("%s",usuario.extrato[i]);
+        while(fread(&saldos,sizeof(Saldo),1,readSaldos)){
+            if(!strcmp(saldos.cpf,  usuario.cpf)){
         
                 for(unsigned int i = 0; i < qtd_moedas; ++i){
-                    if(saldos->idCoin == moedas[i].idcoin ){
+                    if(saldos.idcoin == moedas[i].idcoin ){
                     
-                        printf(" %s: %.4f",moedas[i].sigla, saldos->saldo/moedas[i].cota);
+                        printf(" %s: %.4f",moedas[i].sigla, saldos.saldo/moedas[i].cota);
                     }
                 }
             }
@@ -582,7 +671,7 @@ char consultar_extrato(User* usuario, BolsaCripto* moedas, Saldo* saldos, unsign
         limpaBuffer();
     }while(opcao != 49);
 
-    return opcao;
+    return;
 }
 
 int menu(){
@@ -628,10 +717,10 @@ int main(void){
                 remover_moeda(moeda,qtd_moedas);
                 ler_moedas(&qtd_moedas);
             case 5:
-                puts("Consultar Saldo do Investidor");
+                consultar_saldos(moeda, qtd_moedas);
                 break;
             case 6:
-                puts("Consultar Extrato do Investidor");
+                consultar_extrato(moeda, qtd_moedas);
                 break;
             case 7:
                
